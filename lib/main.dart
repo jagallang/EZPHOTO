@@ -523,8 +523,34 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                   child: Transform.rotate(
                     angle: (photoRotations[slotIndex] ?? 0) * 3.14159 / 180,
                     child: Image.network(
-                      photoData[slotIndex]!.replaceAll('w=300&h=200', 'w=800&h=600'),
+                      photoData[slotIndex]!,
                       fit: BoxFit.contain,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.broken_image, size: 64, color: Colors.grey),
+                              SizedBox(height: 16),
+                              Text(
+                                '이미지를 불러올 수 없습니다',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -944,10 +970,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
 
   void _initializeWithSamplePhotos() {
     final sampleImages = [
-      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-      'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop',
-      'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&h=300&fit=crop',
-      'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&h=300&fit=crop',
+      'https://picsum.photos/400/300?random=1',
+      'https://picsum.photos/400/300?random=2',
+      'https://picsum.photos/400/300?random=3',
+      'https://picsum.photos/400/300?random=4',
     ];
 
     final sampleNames = [
@@ -1675,6 +1701,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
             }
           : null,
       child: Container(
+        constraints: const BoxConstraints(
+          minHeight: 100, // 최소 높이 보장
+          minWidth: 100,  // 최소 너비 보장
+        ),
         decoration: BoxDecoration(
           border: Border.all(
             color: isSelected
@@ -1704,10 +1734,53 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,
+                        cacheWidth: 400, // 캐시 크기 제한
+                        cacheHeight: 300,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            color: Colors.grey[200],
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          );
+                        },
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.broken_image, size: 40),
+                            width: double.infinity,
+                            height: double.infinity,
+                            color: Colors.grey[200],
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.broken_image, size: 32, color: Colors.grey),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '이미지 로딩 실패',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      // 이미지 다시 로드를 위한 상태 업데이트
+                                    });
+                                  },
+                                  child: const Text('다시 시도', style: TextStyle(fontSize: 10)),
+                                ),
+                              ],
+                            ),
                           );
                         },
                       ),

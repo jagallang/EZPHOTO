@@ -6,6 +6,122 @@ import 'dart:math' as math;
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
+class RobustNetworkImage extends StatefulWidget {
+  final String url;
+  final BoxFit fit;
+  final double? width;
+  final double? height;
+  final int? cacheWidth;
+  final int? cacheHeight;
+
+  const RobustNetworkImage({
+    super.key,
+    required this.url,
+    this.fit = BoxFit.cover,
+    this.width,
+    this.height,
+    this.cacheWidth,
+    this.cacheHeight,
+  });
+
+  @override
+  State<RobustNetworkImage> createState() => _RobustNetworkImageState();
+}
+
+class _RobustNetworkImageState extends State<RobustNetworkImage> {
+  int _retryCount = 0;
+  
+  List<String> _getFallbackUrls(String originalUrl) {
+    return [
+      originalUrl,
+      'https://via.placeholder.com/400x300/9E9E9E/FFFFFF?text=Loading...',
+      'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDQwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMzAwIiBmaWxsPSIjRjVGNUY1Ii8+Cjx0ZXh0IHg9IjIwMCIgeT0iMTUwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5OTk5IiBmb250LXNpemU9IjE4Ij7sgJjslZzsnbQ8L3RleHQ+Cjwvc3ZnPgo=',
+    ];
+  }
+
+  void _retry() {
+    setState(() {
+      _retryCount++;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final urls = _getFallbackUrls(widget.url);
+    final currentUrl = _retryCount < urls.length ? urls[_retryCount] : urls.last;
+    
+    return Image.network(
+      currentUrl,
+      key: ValueKey('${widget.url}_$_retryCount'),
+      fit: widget.fit,
+      width: widget.width,
+      height: widget.height,
+      cacheWidth: widget.cacheWidth,
+      cacheHeight: widget.cacheHeight,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Container(
+          width: widget.width ?? double.infinity,
+          height: widget.height ?? double.infinity,
+          color: Colors.grey[200],
+          child: Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
+                  : null,
+              strokeWidth: 2,
+            ),
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        if (_retryCount < urls.length - 1) {
+          // 다음 URL로 자동 재시도
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _retry();
+          });
+          return Container(
+            width: widget.width ?? double.infinity,
+            height: widget.height ?? double.infinity,
+            color: Colors.grey[200],
+            child: const Center(
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
+        }
+        
+        // 모든 URL 실패시 최종 오류 UI
+        return Container(
+          width: widget.width ?? double.infinity,
+          height: widget.height ?? double.infinity,
+          color: Colors.grey[100],
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.image_not_supported, size: 32, color: Colors.grey),
+              const SizedBox(height: 8),
+              Text(
+                '이미지 로딩 실패',
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              ),
+              const SizedBox(height: 4),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _retryCount = 0;
+                  });
+                },
+                child: const Text('다시 시도', style: TextStyle(fontSize: 10)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class ShapeOverlay {
   final String type;
   Offset position;
@@ -522,35 +638,9 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                   padding: const EdgeInsets.all(20),
                   child: Transform.rotate(
                     angle: (photoRotations[slotIndex] ?? 0) * 3.14159 / 180,
-                    child: Image.network(
-                      photoData[slotIndex]!,
+                    child: RobustNetworkImage(
+                      url: photoData[slotIndex]!,
                       fit: BoxFit.contain,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.broken_image, size: 64, color: Colors.grey),
-                              SizedBox(height: 16),
-                              Text(
-                                '이미지를 불러올 수 없습니다',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
                     ),
                   ),
                 ),
@@ -969,11 +1059,12 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
   }
 
   void _initializeWithSamplePhotos() {
+    // 더 안정적인 이미지 URL 사용
     final sampleImages = [
-      'https://picsum.photos/400/300?random=1',
-      'https://picsum.photos/400/300?random=2',
-      'https://picsum.photos/400/300?random=3',
-      'https://picsum.photos/400/300?random=4',
+      'https://via.placeholder.com/400x300/4CAF50/FFFFFF?text=Sample+1',
+      'https://via.placeholder.com/400x300/2196F3/FFFFFF?text=Sample+2', 
+      'https://via.placeholder.com/400x300/FF9800/FFFFFF?text=Sample+3',
+      'https://via.placeholder.com/400x300/E91E63/FFFFFF?text=Sample+4',
     ];
 
     final sampleNames = [
@@ -1729,60 +1820,13 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     scale: scale,
                     child: Transform.rotate(
                       angle: (photoRotations[index] ?? 0) * 3.14159 / 180,
-                      child: Image.network(
-                        photoData[index]!,
+                      child: RobustNetworkImage(
+                        url: photoData[index]!,
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,
-                        cacheWidth: 400, // 캐시 크기 제한
+                        cacheWidth: 400,
                         cacheHeight: 300,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            width: double.infinity,
-                            height: double.infinity,
-                            color: Colors.grey[200],
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                value: loadingProgress.expectedTotalBytes != null
-                                    ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                    : null,
-                                strokeWidth: 2,
-                              ),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            width: double.infinity,
-                            height: double.infinity,
-                            color: Colors.grey[200],
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.broken_image, size: 32, color: Colors.grey),
-                                const SizedBox(height: 8),
-                                Text(
-                                  '이미지 로딩 실패',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                TextButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      // 이미지 다시 로드를 위한 상태 업데이트
-                                    });
-                                  },
-                                  child: const Text('다시 시도', style: TextStyle(fontSize: 10)),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
                       ),
                     ),
                   ),

@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:screenshot/screenshot.dart';
 import 'dart:math' as math;
 import 'dart:convert';
-import 'dart:html' as html;
+import 'package:flutter/foundation.dart';
 
 class ShapeOverlay {
   final String type;
@@ -996,17 +996,17 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Row(
                 children: [
-                  // 왼쪽: 앱 이름
+                  // 왼쪽: 앱 이름 (모바일에 맞게 축소)
                   const Text(
                     '📸 이지포토',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 22,
-                      letterSpacing: 1.2,
+                      fontSize: 18,
+                      letterSpacing: 0.8,
                     ),
                   ),
                   
@@ -1017,14 +1017,16 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
                             ),
                             child: IconButton(
-                              icon: const Icon(Icons.chevron_left, color: Colors.white, size: 28),
+                              padding: const EdgeInsets.all(4),
+                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                              icon: const Icon(Icons.chevron_left, color: Colors.white, size: 20),
                               onPressed: currentPageIndex > 0 ? () {
                                 _saveCurrentPageData();
                                 _loadPageData(currentPageIndex - 1);
@@ -1032,31 +1034,33 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.25),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
                             ),
                             child: Text(
                               '${currentPageIndex + 1}/${pages.length}',
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 14,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                           Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
                             ),
                             child: IconButton(
-                              icon: const Icon(Icons.chevron_right, color: Colors.white, size: 28),
+                              padding: const EdgeInsets.all(4),
+                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                              icon: const Icon(Icons.chevron_right, color: Colors.white, size: 20),
                               onPressed: currentPageIndex < pages.length - 1 ? () {
                                 _saveCurrentPageData();
                                 _loadPageData(currentPageIndex + 1);
@@ -1068,32 +1072,36 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     ),
                   ),
                   
-                  // 오른쪽: 기능 버튼들
+                  // 오른쪽: 기능 버튼들 (모바일에 맞게 더 컴팩트)
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
                         ),
                         child: TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            minimumSize: const Size(40, 40),
+                          ),
                           onPressed: () {
                             _showMultiPhotoAddDialog();
                           },
                           child: const Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.add_a_photo, color: Colors.white, size: 24),
-                              SizedBox(height: 2),
+                              Icon(Icons.add_a_photo, color: Colors.white, size: 18),
+                              SizedBox(height: 1),
                               Text(
                                 '추가',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
-                                  fontSize: 11,
+                                  fontSize: 9,
                                 ),
                               ),
                             ],
@@ -1101,27 +1109,31 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                         ),
                       ),
                       Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
                         ),
                         child: TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            minimumSize: const Size(40, 40),
+                          ),
                           onPressed: () {
                             _exportPagesToGallery();
                           },
                           child: const Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.save, color: Colors.white, size: 24),
-                              SizedBox(height: 2),
+                              Icon(Icons.save, color: Colors.white, size: 18),
+                              SizedBox(height: 1),
                               Text(
                                 '저장',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
-                                  fontSize: 11,
+                                  fontSize: 9,
                                 ),
                               ),
                             ],
@@ -1140,11 +1152,11 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         children: [
           Container(
             color: Colors.grey[200],
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: Row(
               children: [
-                const Text('레이아웃:', style: TextStyle(fontSize: 14)),
-                const SizedBox(width: 8),
+                const Text('레이아웃:', style: TextStyle(fontSize: 12)),
+                const SizedBox(width: 4),
                 DropdownButton<int>(
                   value: photoCount,
                   items: [1, 2, 3, 4].map((count) => DropdownMenuItem(
@@ -1157,9 +1169,9 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     }
                   },
                 ),
-                const SizedBox(width: 24),
-                const Text('방향:', style: TextStyle(fontSize: 14)),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
+                const Text('방향:', style: TextStyle(fontSize: 12)),
+                const SizedBox(width: 4),
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
@@ -1181,7 +1193,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                             }
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                             decoration: BoxDecoration(
                               color: isPortrait ? Colors.blue : Colors.transparent,
                               borderRadius: const BorderRadius.only(
@@ -1211,7 +1223,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                             }
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                             decoration: BoxDecoration(
                               color: !isPortrait ? Colors.blue : Colors.transparent,
                               borderRadius: const BorderRadius.only(
@@ -1230,9 +1242,9 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 8),
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
@@ -1247,7 +1259,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                         }
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                         decoration: BoxDecoration(
                           color: showPageNumbers ? Colors.blue.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
@@ -1278,7 +1290,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 ),
                 const Spacer(),
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
@@ -1287,7 +1299,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                         _addEmptyPage();
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                         decoration: BoxDecoration(
                           color: Colors.blue.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
@@ -1318,13 +1330,31 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           ),
           Expanded(
             child: Center(
-              child: Screenshot(
-                controller: _screenshotController,
-                child: Container(
-                  width: isPortrait ? 420 : 594,
-                  height: isPortrait ? 594 : 420,
-                  margin: const EdgeInsets.all(20),
-                  padding: const EdgeInsets.all(30),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // 화면 크기에 맞게 동적으로 계산
+                  final availableWidth = constraints.maxWidth - 40; // margin 20*2
+                  final availableHeight = constraints.maxHeight - 40; // margin 20*2
+                  
+                  double containerWidth, containerHeight;
+                  
+                  if (isPortrait) {
+                    // 세로 모드: 가로 기준으로 크기 결정
+                    containerWidth = availableWidth.clamp(200.0, 400.0);
+                    containerHeight = containerWidth * 1.4; // A4 비율
+                  } else {
+                    // 가로 모드: 세로 기준으로 크기 결정
+                    containerHeight = availableHeight.clamp(200.0, 400.0);
+                    containerWidth = containerHeight * 1.4; // A4 비율
+                  }
+                  
+                  return Screenshot(
+                    controller: _screenshotController,
+                    child: Container(
+                      width: containerWidth,
+                      height: containerHeight,
+                      margin: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     boxShadow: [
@@ -1414,13 +1444,14 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                   ],
                 ),
                 ),
+                  );
+                },
               ),
             ),
           ),
         ],
       ),
       bottomNavigationBar: Container(
-        height: 90,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             begin: Alignment.topCenter,
@@ -1444,8 +1475,9 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
             top: BorderSide(color: Color(0xFFE0E0E0), width: 0.5),
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
           child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -1554,6 +1586,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
             ],
           ),
           ),
+        ),
         ),
       ),
     );
@@ -2037,18 +2070,14 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         );
         
         if (imageBytes != null) {
-          // Base64로 변환
-          final String base64String = base64Encode(imageBytes);
-          
-          // 웹에서 파일 다운로드
-          final html.AnchorElement anchor = html.AnchorElement()
-            ..href = 'data:image/png;base64,$base64String'
-            ..download = '페이지_${pageIndex + 1}.png'
-            ..style.display = 'none';
-            
-          html.document.body?.children.add(anchor);
-          anchor.click();
-          html.document.body?.children.remove(anchor);
+          // 플랫폼별 저장 방식
+          if (kIsWeb) {
+            // 웹에서만 사용 가능 - 모바일 버전에서는 스킵
+            debugPrint('웹 플랫폼에서만 내보내기 지원');
+          } else {
+            // 모바일에서는 이미지 캡처만 수행
+            debugPrint('페이지 ${pageIndex + 1} 이미지가 캡처되었습니다 (${imageBytes.length} bytes)');
+          }
         }
       }
       

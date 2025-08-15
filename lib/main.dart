@@ -6,6 +6,97 @@ import 'dart:math' as math;
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
+class LocalGradientImage extends StatelessWidget {
+  final String imageId;
+  final BoxFit fit;
+  final double? width;
+  final double? height;
+
+  const LocalGradientImage({
+    super.key,
+    required this.imageId,
+    this.fit = BoxFit.cover,
+    this.width,
+    this.height,
+  });
+
+  List<Color> _getGradientColors(String id) {
+    switch (id) {
+      case 'local_gradient_1':
+        return [const Color(0xFF4CAF50), const Color(0xFF81C784)]; // Green
+      case 'local_gradient_2':
+        return [const Color(0xFF2196F3), const Color(0xFF64B5F6)]; // Blue
+      case 'local_gradient_3':
+        return [const Color(0xFFFF9800), const Color(0xFFFFB74D)]; // Orange
+      case 'local_gradient_4':
+        return [const Color(0xFFE91E63), const Color(0xFFF06292)]; // Pink
+      default:
+        return [Colors.grey.shade400, Colors.grey.shade600];
+    }
+  }
+
+  String _getImageText(String id) {
+    switch (id) {
+      case 'local_gradient_1':
+        return '자연 풍경';
+      case 'local_gradient_2':
+        return '도시 야경';
+      case 'local_gradient_3':
+        return '바다 전망';
+      case 'local_gradient_4':
+        return '음식 사진';
+      default:
+        return '샘플 이미지';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = _getGradientColors(imageId);
+    final text = _getImageText(imageId);
+
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: colors,
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.image,
+              size: 48,
+              color: Colors.white.withValues(alpha: 0.9),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              text,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                shadows: [
+                  Shadow(
+                    offset: const Offset(1, 1),
+                    blurRadius: 2,
+                    color: Colors.black.withValues(alpha: 0.3),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class RobustNetworkImage extends StatefulWidget {
   final String url;
   final BoxFit fit;
@@ -26,6 +117,48 @@ class RobustNetworkImage extends StatefulWidget {
 
   @override
   State<RobustNetworkImage> createState() => _RobustNetworkImageState();
+}
+
+class SmartImage extends StatelessWidget {
+  final String imageSource;
+  final BoxFit fit;
+  final double? width;
+  final double? height;
+  final int? cacheWidth;
+  final int? cacheHeight;
+
+  const SmartImage({
+    super.key,
+    required this.imageSource,
+    this.fit = BoxFit.cover,
+    this.width,
+    this.height,
+    this.cacheWidth,
+    this.cacheHeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // 로컬 그라데이션 이미지인지 확인
+    if (imageSource.startsWith('local_gradient_')) {
+      return LocalGradientImage(
+        imageId: imageSource,
+        fit: fit,
+        width: width,
+        height: height,
+      );
+    }
+    
+    // 네트워크 이미지 처리
+    return RobustNetworkImage(
+      url: imageSource,
+      fit: fit,
+      width: width,
+      height: height,
+      cacheWidth: cacheWidth,
+      cacheHeight: cacheHeight,
+    );
+  }
 }
 
 class _RobustNetworkImageState extends State<RobustNetworkImage> {
@@ -638,8 +771,8 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                   padding: const EdgeInsets.all(20),
                   child: Transform.rotate(
                     angle: (photoRotations[slotIndex] ?? 0) * 3.14159 / 180,
-                    child: RobustNetworkImage(
-                      url: photoData[slotIndex]!,
+                    child: SmartImage(
+                      imageSource: photoData[slotIndex]!,
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -1059,12 +1192,12 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
   }
 
   void _initializeWithSamplePhotos() {
-    // 더 안정적인 이미지 URL 사용
+    // 로컬 색상 기반 샘플 이미지 (네트워크 불필요)
     final sampleImages = [
-      'https://via.placeholder.com/400x300/4CAF50/FFFFFF?text=Sample+1',
-      'https://via.placeholder.com/400x300/2196F3/FFFFFF?text=Sample+2', 
-      'https://via.placeholder.com/400x300/FF9800/FFFFFF?text=Sample+3',
-      'https://via.placeholder.com/400x300/E91E63/FFFFFF?text=Sample+4',
+      'local_gradient_1',
+      'local_gradient_2',
+      'local_gradient_3',
+      'local_gradient_4',
     ];
 
     final sampleNames = [
@@ -1820,8 +1953,8 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     scale: scale,
                     child: Transform.rotate(
                       angle: (photoRotations[index] ?? 0) * 3.14159 / 180,
-                      child: RobustNetworkImage(
-                        url: photoData[index]!,
+                      child: SmartImage(
+                        imageSource: photoData[index]!,
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,

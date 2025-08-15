@@ -1016,128 +1016,95 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
-                            ),
-                            child: IconButton(
-                              padding: const EdgeInsets.all(4),
-                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                              icon: const Icon(Icons.chevron_left, color: Colors.white, size: 20),
-                              onPressed: currentPageIndex > 0 ? () {
-                                _saveCurrentPageData();
-                                _loadPageData(currentPageIndex - 1);
-                              } : null,
-                            ),
+                          IconButton(
+                            padding: const EdgeInsets.all(8),
+                            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                            icon: const Icon(Icons.chevron_left, color: Colors.white, size: 24),
+                            onPressed: currentPageIndex > 0 ? () {
+                              _saveCurrentPageData();
+                              _loadPageData(currentPageIndex - 1);
+                            } : null,
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.25),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
                               '${currentPageIndex + 1}/${pages.length}',
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
-                          Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
-                            ),
-                            child: IconButton(
-                              padding: const EdgeInsets.all(4),
-                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                              icon: const Icon(Icons.chevron_right, color: Colors.white, size: 20),
-                              onPressed: currentPageIndex < pages.length - 1 ? () {
-                                _saveCurrentPageData();
-                                _loadPageData(currentPageIndex + 1);
-                              } : null,
-                            ),
+                          IconButton(
+                            padding: const EdgeInsets.all(8),
+                            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                            icon: const Icon(Icons.chevron_right, color: Colors.white, size: 24),
+                            onPressed: currentPageIndex < pages.length - 1 ? () {
+                              _saveCurrentPageData();
+                              _loadPageData(currentPageIndex + 1);
+                            } : null,
                           ),
                         ],
                       ),
                     ),
                   ),
                   
-                  // 오른쪽: 기능 버튼들 (모바일에 맞게 더 컴팩트)
+                  // 오른쪽: 기능 버튼들 (배경 제거, 깔끔한 디자인)
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 1),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          minimumSize: const Size(40, 40),
                         ),
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            minimumSize: const Size(40, 40),
-                          ),
-                          onPressed: () {
-                            _showMultiPhotoAddDialog();
-                          },
-                          child: const Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.add_a_photo, color: Colors.white, size: 18),
-                              SizedBox(height: 1),
-                              Text(
-                                '추가',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 9,
-                                ),
+                        onPressed: () {
+                          _showMultiPhotoAddDialog();
+                        },
+                        child: const Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add_a_photo, color: Colors.white, size: 20),
+                            SizedBox(height: 2),
+                            Text(
+                              '추가',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 10,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 1),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          minimumSize: const Size(40, 40),
                         ),
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            minimumSize: const Size(40, 40),
-                          ),
-                          onPressed: () {
-                            _exportPagesToGallery();
-                          },
-                          child: const Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.save, color: Colors.white, size: 18),
-                              SizedBox(height: 1),
-                              Text(
-                                '저장',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 9,
-                                ),
+                        onPressed: () {
+                          _exportPagesToGallery();
+                        },
+                        child: const Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.save, color: Colors.white, size: 20),
+                            SizedBox(height: 2),
+                            Text(
+                              '저장',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 10,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -1332,20 +1299,38 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
             child: Center(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  // 화면 크기에 맞게 동적으로 계산
-                  final availableWidth = constraints.maxWidth - 40; // margin 20*2
-                  final availableHeight = constraints.maxHeight - 40; // margin 20*2
+                  // 화면 크기에 완전히 반응하는 동적 계산
+                  final screenWidth = constraints.maxWidth;
+                  final screenHeight = constraints.maxHeight;
+                  
+                  // 여백을 화면 크기에 비례하여 설정
+                  final horizontalMargin = (screenWidth * 0.03).clamp(8.0, 20.0);
+                  final verticalMargin = (screenHeight * 0.02).clamp(8.0, 16.0);
+                  
+                  final availableWidth = screenWidth - (horizontalMargin * 2);
+                  final availableHeight = screenHeight - (verticalMargin * 2);
                   
                   double containerWidth, containerHeight;
                   
-                  if (isPortrait) {
-                    // 세로 모드: 가로 기준으로 크기 결정
-                    containerWidth = availableWidth.clamp(200.0, 400.0);
-                    containerHeight = containerWidth * 1.4; // A4 비율
+                  // 화면 크기별 최적화
+                  if (screenWidth < 600) {
+                    // 모바일 (소형 화면)
+                    if (isPortrait) {
+                      containerWidth = availableWidth * 0.95; // 95% 활용
+                      containerHeight = (availableHeight * 0.85).clamp(containerWidth * 1.1, containerWidth * 1.5);
+                    } else {
+                      containerHeight = availableHeight * 0.9; // 90% 활용
+                      containerWidth = (availableWidth * 0.8).clamp(containerHeight * 1.1, containerHeight * 1.5);
+                    }
                   } else {
-                    // 가로 모드: 세로 기준으로 크기 결정
-                    containerHeight = availableHeight.clamp(200.0, 400.0);
-                    containerWidth = containerHeight * 1.4; // A4 비율
+                    // 태블릿/데스크톱 (대형 화면)
+                    if (isPortrait) {
+                      containerWidth = availableWidth.clamp(400.0, 600.0);
+                      containerHeight = (containerWidth * 1.3).clamp(500.0, availableHeight);
+                    } else {
+                      containerHeight = availableHeight.clamp(400.0, 500.0);
+                      containerWidth = (containerHeight * 1.4).clamp(500.0, availableWidth);
+                    }
                   }
                   
                   return Screenshot(
@@ -1353,8 +1338,8 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     child: Container(
                       width: containerWidth,
                       height: containerHeight,
-                      margin: const EdgeInsets.all(20),
-                      padding: const EdgeInsets.all(20),
+                      margin: EdgeInsets.all(horizontalMargin),
+                      padding: EdgeInsets.all((horizontalMargin * 0.8).clamp(8.0, 16.0)),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     boxShadow: [
@@ -1614,7 +1599,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     return Column(
       children: [
         Expanded(child: _buildPhotoSlot(0)),
-        const SizedBox(height: 15),
+        const SizedBox(height: 8),
         Expanded(child: _buildPhotoSlot(1)),
       ],
     );
@@ -1627,13 +1612,13 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           flex: 3,
           child: _buildPhotoSlot(0),
         ),
-        const SizedBox(height: 15),
+        const SizedBox(height: 8),
         Expanded(
           flex: 2,
           child: Row(
             children: [
               Expanded(child: _buildPhotoSlot(1)),
-              const SizedBox(width: 15),
+              const SizedBox(width: 8),
               Expanded(child: _buildPhotoSlot(2)),
             ],
           ),
@@ -1649,17 +1634,17 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           child: Row(
             children: [
               Expanded(child: _buildPhotoSlot(0)),
-              const SizedBox(width: 15),
+              const SizedBox(width: 8),
               Expanded(child: _buildPhotoSlot(1)),
             ],
           ),
         ),
-        const SizedBox(height: 15),
+        const SizedBox(height: 8),
         Expanded(
           child: Row(
             children: [
               Expanded(child: _buildPhotoSlot(2)),
-              const SizedBox(width: 15),
+              const SizedBox(width: 8),
               Expanded(child: _buildPhotoSlot(3)),
             ],
           ),

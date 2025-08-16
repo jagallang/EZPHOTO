@@ -6,6 +6,9 @@ import 'dart:math' as math;
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:gal/gal.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class LocalGradientImage extends StatelessWidget {
   final String imageId;
@@ -381,7 +384,7 @@ class PhotoLayoutApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'POL Photo',
+      title: 'REphoto',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         useMaterial3: true,
@@ -794,22 +797,22 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
 
 
   void selectSlot(int index) {
-    print('selectSlot called: index=$index, currentEditMode=$currentEditMode, hasPhoto=${photoData.containsKey(index)}');
+    // local_gradient_로 시작하거나 데이터가 없는 경우 빈 슬롯으로 처리
+    final hasRealPhoto = photoData.containsKey(index) && 
+                        photoData[index] != null && 
+                        !photoData[index]!.startsWith('local_gradient_');
     
     // 빈 슬롯인 경우 선택 상태 변경 없이 바로 사진 추가 다이얼로그 표시
-    if (!photoData.containsKey(index)) {
-      print('Opening photo add dialog for empty slot $index');
+    if (!hasRealPhoto) {
       _addEmptyPhotoSlot(index);
       return; // 선택 상태 변경 없이 리턴
     }
     
-    // 사진이 있는 슬롯인 경우에만 선택 상태 변경
+    // 실제 사진이 있는 슬롯인 경우에만 선택 상태 변경
     setState(() {
       selectedSlot = index;
       if (currentEditMode == 'photo') {
         addPhotoToSlot(index);
-      } else {
-        print('Slot $index selected');
       }
     });
   }
@@ -1394,30 +1397,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
   }
 
   void _initializeWithSamplePhotos() {
-    // 로컬 색상 기반 샘플 이미지 (네트워크 불필요)
-    final sampleImages = [
-      'local_gradient_1',
-      'local_gradient_2',
-      'local_gradient_3',
-      'local_gradient_4',
-    ];
-
-    final sampleNames = [
-      '자연풍경.jpg',
-      '도시야경.jpg', 
-      '바다전망.jpg',
-      '음식사진.jpg',
-    ];
-
+    // 빈 페이지로 초기화 (샘플 이미지 없이)
     final pagePhotoData = <int, String>{};
     final pagePhotoTitles = <int, String>{};
     final pagePhotoRotations = <int, double>{};
-
-    for (int i = 0; i < sampleImages.length; i++) {
-      pagePhotoData[i] = sampleImages[i];
-      pagePhotoTitles[i] = _truncateFileName(sampleNames[i]);
-      pagePhotoRotations[i] = 0;
-    }
 
     setState(() {
       pages.add(PageData(
@@ -1453,7 +1436,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 children: [
                   // 왼쪽: 앱 이름 (모바일에 맞게 축소)
                   const Text(
-                    '📸 EZPhoto',
+                    '📸 REphoto',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -1784,10 +1767,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                         containerHeight = idealHeight;
                       }
                     } else {
-                      // 가로 모드: 가로가 더 긴 A4
+                      // 가로 모드: 가로가 더 긴 A4 - 크기 최대화
                       // 가용 공간에 맞춰 안전하게 계산
-                      final maxPossibleHeight = availableHeight * 0.85;
-                      final maxPossibleWidth = availableWidth * 0.80;
+                      final maxPossibleHeight = availableHeight * 0.96; // 0.92 -> 0.96로 증가 
+                      final maxPossibleWidth = availableWidth * 0.90; // 0.88 -> 0.90로 증가
                       final idealWidth = maxPossibleHeight * a4Ratio;
                       
                       if (idealWidth <= maxPossibleWidth) {
@@ -1815,10 +1798,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                         containerHeight = idealHeight;
                       }
                     } else {
-                      // 가로 모드: 가로가 더 긴 A4
+                      // 가로 모드: 가로가 더 긴 A4 - 크기 최적화
                       // 가용 공간에 맞춰 안전하게 계산
-                      final maxPossibleHeight = availableHeight * 0.8;
-                      final maxPossibleWidth = availableWidth * 0.9;
+                      final maxPossibleHeight = availableHeight * 0.9; // 0.8 -> 0.9로 증가
+                      final maxPossibleWidth = availableWidth * 0.95; // 0.9 -> 0.95로 증가
                       final idealWidth = maxPossibleHeight * a4Ratio;
                       
                       if (idealWidth <= maxPossibleWidth) {
@@ -1842,7 +1825,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                         horizontal: horizontalMargin,
                         vertical: verticalMargin,
                       ),
-                      padding: EdgeInsets.all((horizontalMargin * 0.8).clamp(8.0, 16.0)),
+                      padding: EdgeInsets.all((horizontalMargin * 0.6).clamp(6.0, 12.0)), // 패딩 축소
                   decoration: const BoxDecoration(
                     color: Colors.white,
                   ),
@@ -1861,52 +1844,59 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                         });
                       },
                       child: Container(
-                        padding: const EdgeInsets.only(bottom: 10),
+                        height: isPortrait ? 35 : 30, // 가로모드에서 높이 축소
+                        padding: EdgeInsets.only(bottom: isPortrait ? 10 : 5), // 가로모드에서 패딩 축소
+                        alignment: Alignment.center, // 중앙 정렬
                         child: isEditingTitle
-                            ? TextField(
-                                controller: titleController,
-                                focusNode: titleFocusNode,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.normal,
+                            ? SizedBox(
+                                height: isPortrait ? 25 : 20, // 가로모드에서 TextField 높이 축소
+                                child: TextField(
+                                  controller: titleController,
+                                  focusNode: titleFocusNode,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: isPortrait ? 12 : 10, // 가로모드에서 더 작게
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                  decoration: const InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: '페이지 제목을 입력하세요',
+                                    contentPadding: EdgeInsets.zero, // 패딩 제거
+                                    isDense: true, // 컴팩트한 TextField
+                                  ),
+                                  onSubmitted: (value) {
+                                    setState(() {
+                                      pageTitle = value;
+                                      isEditingTitle = false;
+                                    });
+                                  },
+                                  onTapOutside: (event) {
+                                    setState(() {
+                                      pageTitle = titleController.text;
+                                      isEditingTitle = false;
+                                    });
+                                  },
+                                  onEditingComplete: () {
+                                    setState(() {
+                                      pageTitle = titleController.text;
+                                      isEditingTitle = false;
+                                    });
+                                  },
                                 ),
-                                decoration: const InputDecoration(
-                                  border: InputBorder.none,
-                                  hintText: '페이지 제목을 입력하세요',
-                                ),
-                                onSubmitted: (value) {
-                                  setState(() {
-                                    pageTitle = value;
-                                    isEditingTitle = false;
-                                  });
-                                },
-                                onTapOutside: (event) {
-                                  setState(() {
-                                    pageTitle = titleController.text;
-                                    isEditingTitle = false;
-                                  });
-                                },
-                                onEditingComplete: () {
-                                  setState(() {
-                                    pageTitle = titleController.text;
-                                    isEditingTitle = false;
-                                  });
-                                },
                               )
                             : Text(
                                 pageTitle,
-                                style: const TextStyle(
-                                  fontSize: 16,
+                                style: TextStyle(
+                                  fontSize: isPortrait ? 12 : 10, // 가로모드에서 더 작게
                                   fontWeight: FontWeight.normal,
                                 ),
                               ),
                       ),
                     ),
-                    const SizedBox(height: 5), // 제목과 사진 사이 간격 더 축소
+                    SizedBox(height: isPortrait ? 5 : 2), // 가로모드에서 간격 최소화
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.only(bottom: 40), // 하단 여백 더 확보
+                        padding: EdgeInsets.only(bottom: isPortrait ? 40 : 15), // 가로모드에서 하단 여백 더 축소
                         child: GestureDetector(
                         onTapDown: (details) => _handleCanvasTap(details.localPosition),
                         child: Stack(
@@ -1923,7 +1913,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     // 페이지 번호 표시
                     if (showPageNumbers)
                       Positioned(
-                        bottom: 5,
+                        bottom: 3,
                         left: 0,
                         right: 0,
                         child: Center(
@@ -1931,8 +1921,8 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                             '${startPageNumber + currentPageIndex}',
                             style: const TextStyle(
                               color: Colors.black,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                              fontWeight: FontWeight.normal,
                             ),
                           ),
                         ),
@@ -2202,7 +2192,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
   }
 
   Widget _buildPhotoSlot(int index) {
-    final hasPhoto = photoData.containsKey(index);
+    // local_gradient_로 시작하는 것은 빈 슬롯으로 처리
+    final hasPhoto = photoData.containsKey(index) && 
+                    photoData[index] != null && 
+                    !photoData[index]!.startsWith('local_gradient_');
     final isSelected = selectedSlot == index;
     final offset = photoOffsets[index] ?? Offset.zero;
     final zoomLevel = photoZoomLevels[index] ?? 0;
@@ -2594,25 +2587,80 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('💾 갤러리에 저장'),
-          content: Text('${pages.length}개의 페이지를 모두 갤러리에 저장하시겠습니까?'),
+          title: const Row(
+            children: [
+              Icon(Icons.file_download, color: Colors.blue),
+              SizedBox(width: 8),
+              Text('내보내기 형식 선택'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${pages.length}개의 페이지를 어떤 형식으로 저장하시겠습니까?',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+              // 이미지 저장 버튼
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _exportPagesToGallery();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.image, size: 20),
+                  label: const Text(
+                    '이미지로 저장',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              // PDF 저장 버튼
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _exportPagesToPdf();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.picture_as_pdf, size: 20),
+                  label: const Text(
+                    'PDF로 저장',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ],
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('취소'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _exportPagesToGallery();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
+              child: const Text(
+                '취소',
+                style: TextStyle(fontSize: 16),
               ),
-              child: const Text('저장'),
             ),
           ],
         );
@@ -2654,9 +2702,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         // UI 업데이트를 위한 대기
         await Future.delayed(const Duration(milliseconds: 500));
         
-        // 스크린샷 캡처
+        // 스크린샷 캡처 (고해상도)
         final Uint8List? imageBytes = await _screenshotController.capture(
           delay: const Duration(milliseconds: 200),
+          pixelRatio: 3.0, // 고해상도 캡처
         );
         
         if (imageBytes != null) {
@@ -2668,7 +2717,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
             try {
               await Gal.putImageBytes(
                 imageBytes,
-                name: 'EZPHOTO_Page_${pageIndex + 1}_${DateTime.now().millisecondsSinceEpoch}',
+                name: 'REphoto_Page_${pageIndex + 1}_${DateTime.now().millisecondsSinceEpoch}',
               );
               
               savedCount++;
@@ -2714,6 +2763,115 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('갤러리 저장 중 오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _exportPagesToPdf() async {
+    try {
+      // 로딩 다이얼로그 표시
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const AlertDialog(
+            content: Row(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Text('PDF 생성 중...'),
+              ],
+            ),
+          );
+        },
+      );
+
+      // PDF 문서 생성
+      final pdf = pw.Document();
+      final originalPageIndex = currentPageIndex; // 원래 페이지 인덱스 저장
+      
+      // 각 페이지를 PDF로 변환
+      for (int pageIndex = 0; pageIndex < pages.length; pageIndex++) {
+        // 현재 페이지로 전환
+        setState(() {
+          currentPageIndex = pageIndex;
+        });
+        _loadPageData(pageIndex);
+        
+        // UI 업데이트 완료 대기
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        final Uint8List? imageBytes = await _screenshotController.capture(
+          pixelRatio: 4.0, // 초고해상도 캡처 (PDF용)
+          delay: const Duration(milliseconds: 100),
+        );
+        
+        if (imageBytes != null) {
+          final image = pw.MemoryImage(imageBytes);
+          
+          pdf.addPage(
+            pw.Page(
+              pageFormat: PdfPageFormat.a4,
+              margin: pw.EdgeInsets.zero, // 여백 완전 제거
+              build: (pw.Context context) {
+                // A4 크기 (포인트 단위)
+                const double a4Width = 595.28; // A4 width in points
+                const double a4Height = 841.89; // A4 height in points
+                
+                return pw.Container(
+                  width: a4Width,
+                  height: a4Height,
+                  child: pw.Image(
+                    image,
+                    width: a4Width,
+                    height: a4Height,
+                    fit: pw.BoxFit.fill, // 비율 무시하고 전체 채우기
+                  ),
+                );
+              },
+            ),
+          );
+        }
+      }
+      
+      // 원래 페이지로 복원
+      setState(() {
+        currentPageIndex = originalPageIndex;
+      });
+      _loadPageData(originalPageIndex);
+      
+      // 로딩 다이얼로그 닫기
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      
+      // PDF를 Uint8List로 저장
+      final Uint8List pdfBytes = await pdf.save();
+      
+      // PDF 인쇄/공유 다이얼로그 표시
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdfBytes,
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ PDF가 생성되었습니다!'),
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // 로딩 다이얼로그가 열려있다면 닫기
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('PDF 생성 중 오류가 발생했습니다: $e'),
             backgroundColor: Colors.red,
           ),
         );

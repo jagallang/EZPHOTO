@@ -617,29 +617,26 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
   }
 
   void _addEmptyPage() {
-    // 현재 페이지 데이터 저장 (기존 페이지 보호)
     _saveCurrentPageData();
     
-    // 새로운 빈 페이지 생성 - 현재 설정된 레이아웃 사용
+    // 새로운 빈 페이지 생성
     final newPage = PageData(
       title: '페이지 ${pages.length + 1}',
-      layoutCount: photoCount, // 현재 선택된 레이아웃으로만 생성
-      photoData: {}, // 빈 사진 슬롯들
-      photoTitles: {}, // 빈 제목들
-      photoRotations: {}, // 기본 회전값
+      layoutCount: photoCount, // 현재 선택된 레이아웃으로 생성
+      photoData: {},
+      photoTitles: {},
+      photoRotations: {},
     );
     
     setState(() {
-      // 기존 페이지들은 그대로 유지하고 새 페이지만 추가
       pages.add(newPage);
-      currentPageIndex = pages.length - 1; // 새 페이지로 이동
+      currentPageIndex = pages.length - 1;
     });
     
-    // 새 페이지 데이터 로드
     _loadPageData(currentPageIndex);
     
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$photoCount분할의 빈 페이지가 추가되었습니다 (기존 페이지는 유지됨)')),
+      SnackBar(content: Text('$photoCount장 분할의 빈 페이지가 추가되었습니다')),
     );
   }
 
@@ -1028,7 +1025,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         builder: (context) => AlertDialog(
           title: const Text('⚠️ 분할 변경 경고'),
           content: const Text(
-            '⚠️ 분할 변경은 모든 페이지의 사진을 1페이지부터 재배치합니다.\n\n• 모든 페이지가 새로운 분할로 변경됩니다\n• 기존 편집 내용(회전, 확대/축소, 도형)이 삭제됩니다\n• 사진들이 1페이지부터 순서대로 재정렬됩니다\n\n빈 페이지만 추가하려면 "페이지" 버튼을 사용하세요.\n\n계속하시겠습니까?',
+            '현재 페이지의 분할을 변경하면 이 페이지의 도형, 확대/축소, 회전 등의 편집 내용이 삭제됩니다.\n사진은 새로운 분할에 맞게 재배치됩니다.\n\n다른 페이지는 영향받지 않습니다.\n\n계속하시겠습니까?',
           ),
           actions: [
             TextButton(
@@ -1786,15 +1783,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     if (isPortrait) {
                       // 세로 모드: 세로가 더 긴 A4 (width × 1.414 = height)
                       containerWidth = availableWidth.clamp(400.0, 600.0);
-                      final minHeight = 500.0;
-                      final maxHeight = availableHeight * 0.95;
-                      final idealHeight = containerWidth * a4Ratio;
-                      
-                      if (minHeight <= maxHeight) {
-                        containerHeight = idealHeight.clamp(minHeight, maxHeight);
-                      } else {
-                        containerHeight = idealHeight;
-                      }
+                      containerHeight = (containerWidth * a4Ratio).clamp(
+                        500.0, 
+                        availableHeight * 0.95
+                      );
                     } else {
                       // 가로 모드: 가로가 더 긴 A4
                       // 가용 공간에 맞춰 안전하게 계산

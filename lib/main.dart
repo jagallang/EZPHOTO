@@ -794,13 +794,22 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
 
 
   void selectSlot(int index) {
+    print('selectSlot called: index=$index, currentEditMode=$currentEditMode, hasPhoto=${photoData.containsKey(index)}');
+    
+    // 빈 슬롯인 경우 선택 상태 변경 없이 바로 사진 추가 다이얼로그 표시
+    if (!photoData.containsKey(index)) {
+      print('Opening photo add dialog for empty slot $index');
+      _addEmptyPhotoSlot(index);
+      return; // 선택 상태 변경 없이 리턴
+    }
+    
+    // 사진이 있는 슬롯인 경우에만 선택 상태 변경
     setState(() {
       selectedSlot = index;
       if (currentEditMode == 'photo') {
         addPhotoToSlot(index);
-      } else if (!photoData.containsKey(index)) {
-        // 빈 슬롯 클릭시 사진 추가 다이얼로그 표시
-        _addEmptyPhotoSlot(index);
+      } else {
+        print('Slot $index selected');
       }
     });
   }

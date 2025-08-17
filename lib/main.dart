@@ -368,6 +368,43 @@ class PageData {
        shapes = shapes ?? [];
 }
 
+// 겉표지 데이터 클래스
+class CoverPageData {
+  String template; // 'report', 'proposal', 'album', 'document', 'quotation', 'photo_text', 'text_only', 'none'
+  String title;
+  String subtitle;
+  String author;
+  String date;
+  String? organization;
+  String? additionalInfo;
+  String? customerName; // 견적서용
+  String? projectName; // 견적서용
+  String? totalAmount; // 견적서용
+  String? photoPath; // 사진+텍스트용
+  List<String> textLines; // 텍스트 줄들
+  Color primaryColor;
+  Color secondaryColor;
+  String? logoImage;
+  
+  CoverPageData({
+    this.template = 'none',
+    this.title = '',
+    this.subtitle = '',
+    this.author = '',
+    this.date = '',
+    this.organization,
+    this.additionalInfo,
+    this.customerName,
+    this.projectName,
+    this.totalAmount,
+    this.photoPath,
+    List<String>? textLines,
+    this.primaryColor = Colors.blue,
+    this.secondaryColor = Colors.white,
+    this.logoImage,
+  }) : textLines = textLines ?? List.filled(10, '');
+}
+
 void main() {
   // 세로모드로 고정
   WidgetsFlutterBinding.ensureInitialized();
@@ -420,6 +457,15 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
   // 페이지 번호 관련 변수들
   bool showPageNumbers = false;
   int startPageNumber = 1;
+  
+  // 겉표지 관련 변수들
+  CoverPageData? coverPage;
+  bool showCoverInPreview = false; // 미리보기에서 겉표지 표시 여부
+  bool isEditingCoverField = false; // 겉표지 필드 편집 상태
+  String editingFieldType = ''; // 편집 중인 필드 타입
+  int editingTextLineIndex = -1; // 편집 중인 텍스트 줄 인덱스
+  final TextEditingController coverEditController = TextEditingController();
+  final FocusNode coverEditFocusNode = FocusNode();
   
   // 스크린샷 컨트롤러
   final ScreenshotController _screenshotController = ScreenshotController();
@@ -1251,6 +1297,307 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     });
   }
 
+  void _showCoverPageDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('겉표지 템플릿 선택'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('원하는 템플릿을 선택하세요.\n내용은 미리보기에서 편집할 수 있습니다.', 
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildTemplateOption('없음', 'none', setDialogState),
+                      _buildTemplateOption('보고서', 'report', setDialogState),
+                      _buildTemplateOption('제안서', 'proposal', setDialogState),
+                      _buildTemplateOption('앨범', 'album', setDialogState),
+                      _buildTemplateOption('레포트', 'document', setDialogState),
+                      _buildTemplateOption('견적서', 'quotation', setDialogState),
+                      _buildTemplateOption('사진+텍스트', 'photo_text', setDialogState),
+                      _buildTemplateOption('텍스트전용', 'text_only', setDialogState),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('취소'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      // 겉표지가 설정되었으면 미리보기 표시
+                      if (coverPage != null && coverPage!.template != 'none') {
+                        showCoverInPreview = true;
+                      } else {
+                        showCoverInPreview = false;
+                      }
+                    });
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('확인'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+  
+  Widget _buildTemplateOption(String label, String value, StateSetter setDialogState) {
+    final isSelected = coverPage?.template == value;
+    return InkWell(
+      onTap: () {
+        print('DEBUG: Template option tapped - value: $value');
+        setDialogState(() {
+          if (value == 'none') {
+            coverPage = null;
+            print('DEBUG: Cover page cleared');
+          } else {
+            coverPage ??= CoverPageData();
+            coverPage!.template = value;
+            print('DEBUG: Cover page template set to: $value');
+            // 템플릿별 기본값 설정
+            switch (value) {
+              case 'report':
+                coverPage!.title = '업무 보고서';
+                coverPage!.subtitle = '2025년 1분기';
+                coverPage!.author = '홍길동';
+                coverPage!.date = DateTime.now().toString().split(' ')[0];
+                coverPage!.organization = '○○회사';
+                coverPage!.primaryColor = Colors.blue;
+                break;
+              case 'proposal':
+                coverPage!.title = '프로젝트 제안서';
+                coverPage!.subtitle = '신규 사업 계획';
+                coverPage!.author = '김철수';
+                coverPage!.date = DateTime.now().toString().split(' ')[0];
+                coverPage!.organization = '△△기업';
+                coverPage!.primaryColor = Colors.teal;
+                break;
+              case 'album':
+                coverPage!.title = '추억의 앨범';
+                coverPage!.subtitle = '소중한 순간들';
+                coverPage!.author = '우리 가족';
+                coverPage!.date = DateTime.now().year.toString();
+                coverPage!.primaryColor = Colors.pink;
+                break;
+              case 'document':
+                coverPage!.title = '사진 레포트';
+                coverPage!.subtitle = '상세 보고서';
+                coverPage!.author = '작성자';
+                coverPage!.date = DateTime.now().toString().split(' ')[0];
+                coverPage!.organization = '부서명';
+                coverPage!.primaryColor = Colors.indigo;
+                break;
+              case 'quotation':
+                coverPage!.title = '견적서';
+                coverPage!.subtitle = '사진 촬영 서비스';
+                coverPage!.author = '담당자';
+                coverPage!.date = DateTime.now().toString().split(' ')[0];
+                coverPage!.customerName = '고객사명';
+                coverPage!.projectName = '프로젝트명';
+                coverPage!.totalAmount = '₩ 1,000,000';
+                coverPage!.primaryColor = Colors.green;
+                break;
+              case 'photo_text':
+                coverPage!.title = '사진 표지';
+                coverPage!.subtitle = '';
+                coverPage!.author = '';
+                coverPage!.date = DateTime.now().toString().split(' ')[0];
+                coverPage!.textLines = List.filled(10, '');
+                coverPage!.primaryColor = Colors.orange;
+                break;
+              case 'text_only':
+                coverPage!.title = '텍스트 표지';
+                coverPage!.subtitle = '';
+                coverPage!.author = '';
+                coverPage!.date = DateTime.now().toString().split(' ')[0];
+                coverPage!.textLines = [
+                  '첫 번째 줄',
+                  '두 번째 줄',
+                  '세 번째 줄',
+                  '', '', '', '', '', '', ''
+                ];
+                coverPage!.primaryColor = Colors.deepPurple;
+                break;
+            }
+            print('DEBUG: Template setup completed - title: ${coverPage!.title}');
+          }
+        });
+        // 메인 앱 상태도 즉시 업데이트
+        setState(() {
+          if (coverPage != null && coverPage!.template != 'none') {
+            showCoverInPreview = true;
+            print('DEBUG: Cover page selected - template: ${coverPage!.template}, showCoverInPreview: $showCoverInPreview');
+          } else {
+            showCoverInPreview = false;
+            print('DEBUG: Cover page cleared - showCoverInPreview: $showCoverInPreview');
+          }
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? Colors.blue : Colors.grey.withValues(alpha: 0.3),
+            width: 2,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.blue : Colors.black87,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 겉표지 필드 편집 관련 메소드들
+  void _startEditingCoverField(String fieldType, {int? textLineIndex}) {
+    String currentValue = '';
+    
+    switch (fieldType) {
+      case 'title':
+        currentValue = coverPage?.title ?? '';
+        break;
+      case 'subtitle':
+        currentValue = coverPage?.subtitle ?? '';
+        break;
+      case 'author':
+        currentValue = coverPage?.author ?? '';
+        break;
+      case 'date':
+        currentValue = coverPage?.date ?? '';
+        break;
+      case 'organization':
+        currentValue = coverPage?.organization ?? '';
+        break;
+      case 'customerName':
+        currentValue = coverPage?.customerName ?? '';
+        break;
+      case 'projectName':
+        currentValue = coverPage?.projectName ?? '';
+        break;
+      case 'totalAmount':
+        currentValue = coverPage?.totalAmount ?? '';
+        break;
+      case 'textLine':
+        if (textLineIndex != null && textLineIndex < (coverPage?.textLines.length ?? 0)) {
+          currentValue = coverPage!.textLines[textLineIndex];
+        }
+        break;
+    }
+    
+    setState(() {
+      isEditingCoverField = true;
+      editingFieldType = fieldType;
+      editingTextLineIndex = textLineIndex ?? -1;
+      coverEditController.text = currentValue;
+    });
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      coverEditFocusNode.requestFocus();
+    });
+  }
+  
+  void _saveCoverFieldEdit() {
+    if (coverPage == null) return;
+    
+    final newValue = coverEditController.text;
+    
+    switch (editingFieldType) {
+      case 'title':
+        coverPage!.title = newValue;
+        break;
+      case 'subtitle':
+        coverPage!.subtitle = newValue;
+        break;
+      case 'author':
+        coverPage!.author = newValue;
+        break;
+      case 'date':
+        coverPage!.date = newValue;
+        break;
+      case 'organization':
+        coverPage!.organization = newValue;
+        break;
+      case 'customerName':
+        coverPage!.customerName = newValue;
+        break;
+      case 'projectName':
+        coverPage!.projectName = newValue;
+        break;
+      case 'totalAmount':
+        coverPage!.totalAmount = newValue;
+        break;
+      case 'textLine':
+        if (editingTextLineIndex >= 0 && editingTextLineIndex < coverPage!.textLines.length) {
+          coverPage!.textLines[editingTextLineIndex] = newValue;
+        }
+        break;
+    }
+    
+    setState(() {
+      isEditingCoverField = false;
+      editingFieldType = '';
+      editingTextLineIndex = -1;
+    });
+  }
+  
+  void _cancelCoverFieldEdit() {
+    setState(() {
+      isEditingCoverField = false;
+      editingFieldType = '';
+      editingTextLineIndex = -1;
+    });
+  }
+
+  String _getFieldLabel(String fieldType) {
+    switch (fieldType) {
+      case 'title':
+        return '제목';
+      case 'subtitle':
+        return '부제목';
+      case 'author':
+        return '작성자';
+      case 'date':
+        return '날짜';
+      case 'organization':
+        return '기관명';
+      case 'additionalInfo':
+        return '추가정보';
+      case 'customerName':
+        return '고객명';
+      case 'projectName':
+        return '프로젝트명';
+      case 'totalAmount':
+        return '총 금액';
+      case 'textLine':
+        return '텍스트';
+      default:
+        return '내용';
+    }
+  }
+
   void _showPageNumberDialog() {
     final TextEditingController pageNumberController = TextEditingController(text: '1');
     
@@ -1690,6 +2037,56 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     ),
                   ),
                 ),
+                // 겉표지 드롭다운
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        _showCoverPageDialog();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: coverPage != null && coverPage!.template != 'none' 
+                            ? Colors.purple.withValues(alpha: 0.1) 
+                            : Colors.grey.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: coverPage != null && coverPage!.template != 'none'
+                              ? Colors.purple.withValues(alpha: 0.3) 
+                              : Colors.grey.withValues(alpha: 0.3)
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.menu_book,
+                              color: coverPage != null && coverPage!.template != 'none'
+                                ? Colors.purple 
+                                : Colors.grey[600],
+                              size: 24,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '겉표지',
+                              style: TextStyle(
+                                color: coverPage != null && coverPage!.template != 'none'
+                                  ? Colors.purple 
+                                  : Colors.grey[600],
+                                fontWeight: FontWeight.w600,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 const Spacer(),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 2),
@@ -1816,24 +2213,146 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     }
                   }
                   
-                  return Screenshot(
-                    controller: _screenshotController,
-                    child: Container(
-                      width: containerWidth.clamp(100.0, double.infinity),
-                      height: containerHeight.clamp(100.0, double.infinity),
-                      margin: EdgeInsets.symmetric(
-                        horizontal: horizontalMargin,
-                        vertical: verticalMargin,
-                      ),
-                      padding: EdgeInsets.all((horizontalMargin * 0.6).clamp(6.0, 12.0)), // 패딩 축소
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                  ),
-                child: Stack(
-                  children: [
-                    Column(
-                      children: [
-                    GestureDetector(
+                  // 겉표지가 있고 미리보기 표시 옵션이 켜져있으면 겉표지 보여주기
+                  if (coverPage != null && coverPage!.template != 'none' && showCoverInPreview) {
+                    print('DEBUG: Rendering cover page - template: ${coverPage!.template}');
+                    return SizedBox(
+                      height: constraints.maxHeight,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // 겉표지 미리보기
+                          Container(
+                            width: containerWidth.clamp(100.0, double.infinity),
+                            height: containerHeight.clamp(100.0, double.infinity),
+                            margin: EdgeInsets.symmetric(
+                              horizontal: horizontalMargin,
+                              vertical: verticalMargin,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withValues(alpha: 0.3),
+                                  spreadRadius: 1,
+                                  blurRadius: 5,
+                                ),
+                              ],
+                            ),
+                            child: Stack(
+                              children: [
+                                CoverPageWidget(
+                                  coverData: coverPage!,
+                                  isForExport: false,
+                                  onFieldTap: _startEditingCoverField,
+                                ),
+                              // 편집 중일 때 TextField 오버레이
+                              if (isEditingCoverField)
+                                Positioned.fill(
+                                  child: Container(
+                                    color: Colors.black.withValues(alpha: 0.3),
+                                    child: Center(
+                                      child: Container(
+                                        width: 300,
+                                        padding: const EdgeInsets.all(20),
+                                        margin: const EdgeInsets.all(20),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              '${_getFieldLabel(editingFieldType)} 편집',
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 16),
+                                            TextField(
+                                              controller: coverEditController,
+                                              focusNode: coverEditFocusNode,
+                                              decoration: InputDecoration(
+                                                labelText: _getFieldLabel(editingFieldType),
+                                                border: const OutlineInputBorder(),
+                                              ),
+                                              maxLines: editingFieldType == 'textLine' ? 3 : 1,
+                                              onSubmitted: (_) => _saveCoverFieldEdit(),
+                                            ),
+                                            const SizedBox(height: 16),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.end,
+                                              children: [
+                                                TextButton(
+                                                  onPressed: _cancelCoverFieldEdit,
+                                                  child: const Text('취소'),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                ElevatedButton(
+                                                  onPressed: _saveCoverFieldEdit,
+                                                  child: const Text('저장'),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        // 왼쪽 화살표 (비활성화)
+                        Positioned(
+                          left: 0,
+                          child: IconButton(
+                            icon: const Icon(Icons.arrow_back_ios, size: 20),
+                            onPressed: null, // 겉표지에서는 뒤로 갈 수 없음
+                            color: Colors.grey,
+                          ),
+                        ),
+                        // 오른쪽 화살표 (겉표지에서 사진페이지로)
+                        Positioned(
+                          right: 0,
+                          child: IconButton(
+                            icon: const Icon(Icons.arrow_forward_ios, size: 20),
+                            onPressed: () {
+                              setState(() {
+                                showCoverInPreview = false;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    );
+                  }
+                  
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // 사진 페이지 (중앙)
+                      Screenshot(
+                        controller: _screenshotController,
+                        child: Container(
+                          width: containerWidth.clamp(100.0, double.infinity),
+                          height: containerHeight.clamp(100.0, double.infinity),
+                          margin: EdgeInsets.symmetric(
+                            horizontal: horizontalMargin,
+                            vertical: verticalMargin,
+                          ),
+                          padding: EdgeInsets.all((horizontalMargin * 0.6).clamp(6.0, 12.0)), // 패딩 축소
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                          ),
+                          child: Stack(
+                            children: [
+                              Column(
+                                children: [
+                                  GestureDetector(
                       onTap: () {
                         setState(() {
                           isEditingTitle = true;
@@ -1927,10 +2446,46 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                           ),
                         ),
                       ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // 왼쪽 화살표
+                    Positioned(
+                      left: 0,
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_ios, size: 20),
+                        onPressed: () {
+                          setState(() {
+                            if (currentPageIndex == 0 && coverPage != null && coverPage!.template != 'none') {
+                              // 첫 페이지에서 겉표지로
+                              showCoverInPreview = true;
+                            } else if (currentPageIndex > 0) {
+                              // 이전 페이지로
+                              _saveCurrentPageData();
+                              currentPageIndex--;
+                              _loadPageData(currentPageIndex);
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                    // 오른쪽 화살표
+                    Positioned(
+                      right: 0,
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_forward_ios, size: 20),
+                        onPressed: (currentPageIndex < pages.length - 1) ? () {
+                          setState(() {
+                            _saveCurrentPageData();
+                            currentPageIndex++;
+                            _loadPageData(currentPageIndex);
+                          });
+                        } : null,
+                      ),
+                    ),
                   ],
-                ),
-                ),
-                  );
+                );
                 },
               ),
             ),
@@ -2695,6 +3250,61 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       
       int savedCount = 0;
       
+      // 겉표지가 있으면 먼저 저장
+      if (coverPage != null && coverPage!.template != 'none') {
+        // 겉표지 위젯을 스크린샷으로 캡처
+        final coverWidget = Screenshot(
+          controller: ScreenshotController(),
+          child: SizedBox(
+            width: 595.28 * 2, // A4 width in points * 2 for higher resolution
+            height: 841.89 * 2, // A4 height in points * 2
+            child: CoverPageWidget(
+              coverData: coverPage!,
+              isForExport: true,
+            ),
+          ),
+        );
+        
+        // 겉표지를 이미지로 캡처
+        final tempContext = context;
+        final coverBytes = await ScreenshotController().captureFromWidget(
+          coverWidget,
+          pixelRatio: 4.0,
+          context: tempContext,
+        );
+        
+        if (coverBytes != null) {
+          if (kIsWeb) {
+            savedCount++;
+          } else {
+            try {
+              await Gal.putImageBytes(
+                coverBytes,
+                name: 'REphoto_Cover_${DateTime.now().millisecondsSinceEpoch}',
+              );
+              savedCount++;
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('겉표지 저장 완료'),
+                    duration: Duration(milliseconds: 600),
+                  ),
+                );
+              }
+            } catch (saveError) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('겉표지 저장 실패: $saveError'),
+                    duration: const Duration(milliseconds: 600),
+                  ),
+                );
+              }
+            }
+          }
+        }
+      }
+      
       for (int pageIndex = 0; pageIndex < pages.length; pageIndex++) {
         // 페이지 로드
         _loadPageData(pageIndex);
@@ -2793,6 +3403,53 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       final pdf = pw.Document();
       final originalPageIndex = currentPageIndex; // 원래 페이지 인덱스 저장
       
+      // 겉표지가 있으면 먼저 추가
+      if (coverPage != null && coverPage!.template != 'none') {
+        // 겉표지 위젯을 스크린샷으로 캡처
+        final coverWidget = Screenshot(
+          controller: ScreenshotController(),
+          child: SizedBox(
+            width: 595.28, // A4 width in points
+            height: 841.89, // A4 height in points
+            child: CoverPageWidget(
+              coverData: coverPage!,
+              isForExport: true,
+            ),
+          ),
+        );
+        
+        // 겉표지를 이미지로 캡처
+        final tempContext = context;
+        final coverBytes = await ScreenshotController().captureFromWidget(
+          coverWidget,
+          pixelRatio: 4.0,
+          context: tempContext,
+        );
+        
+        if (coverBytes != null) {
+          final coverImage = pw.MemoryImage(coverBytes);
+          pdf.addPage(
+            pw.Page(
+              pageFormat: PdfPageFormat.a4,
+              margin: pw.EdgeInsets.zero,
+              clip: false,
+              build: (pw.Context context) {
+                const double a4Width = 595.28;
+                const double a4Height = 841.89;
+                
+                return pw.Image(
+                  coverImage,
+                  width: a4Width,
+                  height: a4Height,
+                  fit: pw.BoxFit.fill,
+                  dpi: 300,
+                );
+              },
+            ),
+          );
+        }
+      }
+      
       // 각 페이지를 PDF로 변환
       for (int pageIndex = 0; pageIndex < pages.length; pageIndex++) {
         // 현재 페이지로 전환
@@ -2816,20 +3473,18 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
             pw.Page(
               pageFormat: PdfPageFormat.a4,
               margin: pw.EdgeInsets.zero, // 여백 완전 제거
+              clip: false, // 클리핑 비활성화
               build: (pw.Context context) {
                 // A4 크기 (포인트 단위)
                 const double a4Width = 595.28; // A4 width in points
                 const double a4Height = 841.89; // A4 height in points
                 
-                return pw.Container(
+                return pw.Image(
+                  image,
                   width: a4Width,
                   height: a4Height,
-                  child: pw.Image(
-                    image,
-                    width: a4Width,
-                    height: a4Height,
-                    fit: pw.BoxFit.fill, // 비율 무시하고 전체 채우기
-                  ),
+                  fit: pw.BoxFit.fill, // 비율 무시하고 전체 채우기
+                  dpi: 300, // 고해상도 설정
                 );
               },
             ),
@@ -2877,5 +3532,1068 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         );
       }
     }
+  }
+}
+
+// 겉표지 위젯
+class CoverPageWidget extends StatelessWidget {
+  final CoverPageData coverData;
+  final bool isForExport;
+  final Function(String fieldType, {int? textLineIndex})? onFieldTap;
+  
+  const CoverPageWidget({
+    super.key,
+    required this.coverData,
+    this.isForExport = false,
+    this.onFieldTap,
+  });
+  
+  @override
+  Widget build(BuildContext context) {
+    switch (coverData.template) {
+      case 'report':
+        return _buildReportTemplate();
+      case 'proposal':
+        return _buildProposalTemplate();
+      case 'album':
+        return _buildAlbumTemplate();
+      case 'document':
+        return _buildDocumentTemplate();
+      case 'quotation':
+        return _buildQuotationTemplate();
+      case 'photo_text':
+        return _buildPhotoTextTemplate();
+      case 'text_only':
+        return _buildTextOnlyTemplate();
+      default:
+        return Container();
+    }
+  }
+  
+  Widget _buildReportTemplate() {
+    return Container(
+      color: Colors.white,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 상단 색상 바
+            Container(
+              height: isForExport ? 80 : 60,
+              width: double.infinity,
+              color: coverData.primaryColor,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // 제목
+                  GestureDetector(
+                    onTap: isForExport ? null : () => onFieldTap?.call('title'),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        border: isForExport ? null : Border.all(
+                          color: Colors.transparent,
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        coverData.title.isEmpty ? '제목을 터치하여 편집' : coverData.title,
+                        style: TextStyle(
+                          fontSize: isForExport ? 32 : 24,
+                          fontWeight: FontWeight.bold,
+                          color: coverData.title.isEmpty ? Colors.grey[400] : Colors.black87,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // 부제목
+                  GestureDetector(
+                    onTap: isForExport ? null : () => onFieldTap?.call('subtitle'),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: Text(
+                        coverData.subtitle.isEmpty ? '부제목을 터치하여 편집' : coverData.subtitle,
+                        style: TextStyle(
+                          fontSize: isForExport ? 20 : 16,
+                          color: coverData.subtitle.isEmpty ? Colors.grey[400] : Colors.grey[700],
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  // 하단 정보
+                  Column(
+                    children: [
+                      GestureDetector(
+                        onTap: isForExport ? null : () => onFieldTap?.call('organization'),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            (coverData.organization?.isEmpty ?? true) ? '조직/기관을 터치하여 편집' : coverData.organization!,
+                            style: TextStyle(
+                              fontSize: isForExport ? 16 : 14,
+                              fontWeight: FontWeight.w500,
+                              color: (coverData.organization?.isEmpty ?? true) ? Colors.grey[400] : Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: isForExport ? null : () => onFieldTap?.call('author'),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            coverData.author.isEmpty ? '작성자를 터치하여 편집' : coverData.author,
+                            style: TextStyle(
+                              fontSize: isForExport ? 14 : 12,
+                              color: coverData.author.isEmpty ? Colors.grey[400] : Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: isForExport ? null : () => onFieldTap?.call('date'),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            coverData.date.isEmpty ? '날짜를 터치하여 편집' : coverData.date,
+                            style: TextStyle(
+                              fontSize: isForExport ? 12 : 10,
+                              color: coverData.date.isEmpty ? Colors.grey[400] : Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // 하단 색상 바
+            Container(
+              height: isForExport ? 50 : 40,
+              width: double.infinity,
+              color: coverData.primaryColor.withValues(alpha: 0.8),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildProposalTemplate() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            coverData.primaryColor.withValues(alpha: 0.1),
+            Colors.white,
+          ],
+        ),
+      ),
+      child: Stack(
+        children: [
+          // 장식 요소
+          Positioned(
+            top: -50,
+            right: -50,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: coverData.primaryColor.withValues(alpha: 0.1),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -30,
+            left: -30,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: coverData.primaryColor.withValues(alpha: 0.08),
+              ),
+            ),
+          ),
+          // 내용
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(30),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                    const SizedBox(height: 60),
+                // 제목
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      left: BorderSide(
+                        color: coverData.primaryColor,
+                        width: 4,
+                      ),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
+                          onTap: isForExport ? null : () => onFieldTap?.call('title'),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            child: Text(
+                              coverData.title.isEmpty ? '제목을 터치하여 편집' : coverData.title,
+                              style: TextStyle(
+                                fontSize: isForExport ? 32 : 26,
+                                fontWeight: FontWeight.bold,
+                                color: coverData.title.isEmpty ? Colors.grey[400] : coverData.primaryColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        GestureDetector(
+                          onTap: isForExport ? null : () => onFieldTap?.call('subtitle'),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            child: Text(
+                              coverData.subtitle.isEmpty ? '부제목을 터치하여 편집' : coverData.subtitle,
+                              style: TextStyle(
+                                fontSize: isForExport ? 20 : 18,
+                                color: coverData.subtitle.isEmpty ? Colors.grey[400] : Colors.grey[700],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: isForExport ? 400 : 300),
+                // 하단 정보
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        onTap: isForExport ? null : () => onFieldTap?.call('organization'),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            (coverData.organization?.isEmpty ?? true) ? '조직/기관을 터치하여 편집' : coverData.organization!,
+                            style: TextStyle(
+                              fontSize: isForExport ? 16 : 14,
+                              fontWeight: FontWeight.w600,
+                              color: (coverData.organization?.isEmpty ?? true) ? Colors.grey[400] : coverData.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: isForExport ? null : () => onFieldTap?.call('author'),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            coverData.author.isEmpty ? '작성자를 터치하여 편집' : coverData.author,
+                            style: TextStyle(
+                              fontSize: isForExport ? 14 : 12,
+                              color: coverData.author.isEmpty ? Colors.grey[400] : Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      GestureDetector(
+                        onTap: isForExport ? null : () => onFieldTap?.call('date'),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            coverData.date.isEmpty ? '날짜를 터치하여 편집' : coverData.date,
+                            style: TextStyle(
+                              fontSize: isForExport ? 12 : 10,
+                              color: coverData.date.isEmpty ? Colors.grey[400] : Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildAlbumTemplate() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            coverData.primaryColor.withValues(alpha: 0.3),
+            coverData.primaryColor.withValues(alpha: 0.1),
+          ],
+        ),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 40),
+            // 장식 프레임
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: coverData.primaryColor,
+                    width: 3,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                Icon(
+                  Icons.photo_album,
+                  size: isForExport ? 80 : 60,
+                  color: coverData.primaryColor,
+                ),
+                const SizedBox(height: 30),
+                GestureDetector(
+                  onTap: isForExport ? null : () => onFieldTap?.call('title'),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Text(
+                      coverData.title.isEmpty ? '제목을 터치하여 편집' : coverData.title,
+                      style: TextStyle(
+                        fontSize: isForExport ? 32 : 26,
+                        fontWeight: FontWeight.bold,
+                        color: coverData.title.isEmpty ? Colors.grey[400] : coverData.primaryColor,
+                        fontFamily: 'serif',
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                GestureDetector(
+                  onTap: isForExport ? null : () => onFieldTap?.call('subtitle'),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Text(
+                      coverData.subtitle.isEmpty ? '부제목을 터치하여 편집' : coverData.subtitle,
+                      style: TextStyle(
+                        fontSize: isForExport ? 18 : 16,
+                        color: coverData.subtitle.isEmpty ? Colors.grey[400] : Colors.grey[700],
+                        fontStyle: FontStyle.italic,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                ],
+              ),
+            ),
+            ),
+            const SizedBox(height: 30),
+            // 작성자와 날짜
+            Column(
+              children: [
+              GestureDetector(
+                onTap: isForExport ? null : () => onFieldTap?.call('author'),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Text(
+                    coverData.author.isEmpty ? '작성자를 터치하여 편집' : coverData.author,
+                    style: TextStyle(
+                      fontSize: isForExport ? 16 : 14,
+                      fontWeight: FontWeight.w500,
+                      color: coverData.author.isEmpty ? Colors.grey[400] : Colors.black87,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: isForExport ? null : () => onFieldTap?.call('date'),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Text(
+                    coverData.date.isEmpty ? '날짜를 터치하여 편집' : coverData.date,
+                    style: TextStyle(
+                      fontSize: isForExport ? 14 : 12,
+                      color: coverData.date.isEmpty ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+        ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildDocumentTemplate() {
+    return Container(
+      color: Colors.grey[50],
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            // 상단 헤더
+            Container(
+              padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  coverData.primaryColor,
+                  coverData.primaryColor.withValues(alpha: 0.7),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.description,
+                  color: Colors.white,
+                  size: isForExport ? 48 : 40,
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'PHOTO REPORT',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: isForExport ? 14 : 12,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      GestureDetector(
+                        onTap: isForExport ? null : () => onFieldTap?.call('title'),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            coverData.title.isEmpty ? '제목을 터치하여 편집' : coverData.title,
+                            style: TextStyle(
+                              color: coverData.title.isEmpty ? Colors.white.withValues(alpha: 0.7) : Colors.white,
+                              fontSize: isForExport ? 28 : 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 60),
+          // 중앙 내용
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Column(
+              children: [
+                GestureDetector(
+                  onTap: isForExport ? null : () => onFieldTap?.call('subtitle'),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withValues(alpha: 0.2),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      coverData.subtitle.isEmpty ? '부제목을 터치하여 편집' : coverData.subtitle,
+                      style: TextStyle(
+                        fontSize: isForExport ? 20 : 18,
+                        color: coverData.subtitle.isEmpty ? Colors.grey[400] : Colors.grey[800],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: isForExport ? 200 : 150),
+          // 하단 정보
+          Container(
+            padding: const EdgeInsets.all(30),
+            color: Colors.white,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GestureDetector(
+                      onTap: isForExport ? null : () => onFieldTap?.call('organization'),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(
+                          (coverData.organization?.isEmpty ?? true) ? '조직/기관을 터치하여 편집' : coverData.organization!,
+                          style: TextStyle(
+                            fontSize: isForExport ? 16 : 14,
+                            fontWeight: FontWeight.w600,
+                            color: (coverData.organization?.isEmpty ?? true) ? Colors.grey[400] : coverData.primaryColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      onTap: isForExport ? null : () => onFieldTap?.call('author'),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(
+                          coverData.author.isEmpty ? '작성자를 터치하여 편집' : coverData.author,
+                          style: TextStyle(
+                            fontSize: isForExport ? 14 : 12,
+                            color: coverData.author.isEmpty ? Colors.grey[400] : Colors.grey[700],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Date',
+                      style: TextStyle(
+                        fontSize: isForExport ? 12 : 10,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: isForExport ? null : () => onFieldTap?.call('date'),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(
+                          coverData.date.isEmpty ? '날짜를 터치하여 편집' : coverData.date,
+                          style: TextStyle(
+                            fontSize: isForExport ? 14 : 12,
+                            fontWeight: FontWeight.w500,
+                            color: coverData.date.isEmpty ? Colors.grey[400] : Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildQuotationTemplate() {
+    return Container(
+      color: Colors.white,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+            // 견적서 타이틀
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: isForExport ? null : () => onFieldTap?.call('title'),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          child: Text(
+                            coverData.title.isEmpty ? '제목을 터치하여 편집' : coverData.title,
+                            style: TextStyle(
+                              fontSize: isForExport ? 20 : 18,
+                              fontWeight: FontWeight.bold,
+                              color: coverData.title.isEmpty ? Colors.grey[400] : coverData.primaryColor,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: isForExport ? null : () => onFieldTap?.call('subtitle'),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          child: Text(
+                            coverData.subtitle.isEmpty ? '부제목을 터치하여 편집' : coverData.subtitle,
+                            style: TextStyle(
+                              fontSize: isForExport ? 10 : 9,
+                              color: coverData.subtitle.isEmpty ? Colors.grey[400] : Colors.grey[600],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: coverData.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(
+                    Icons.request_quote,
+                    size: isForExport ? 24 : 20,
+                    color: coverData.primaryColor,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // 구분선
+            Container(
+              height: 1.5,
+              color: coverData.primaryColor.withValues(alpha: 0.3),
+            ),
+            const SizedBox(height: 8),
+            // 고객 정보
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '고객 정보',
+                    style: TextStyle(
+                      fontSize: isForExport ? 12 : 11,
+                      fontWeight: FontWeight.bold,
+                      color: coverData.primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildEditableInfoRow('고객명', coverData.customerName ?? '', 'customerName'),
+                  _buildEditableInfoRow('프로젝트', coverData.projectName ?? '', 'projectName'),
+                  _buildEditableInfoRow('작성일', coverData.date, 'date'),
+                  _buildEditableInfoRow('담당자', coverData.author, 'author'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            // 총 금액
+            GestureDetector(
+              onTap: isForExport ? null : () => onFieldTap?.call('totalAmount'),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: coverData.primaryColor,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '총 견적 금액',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isForExport ? 12 : 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Flexible(
+                      child: Text(
+                        (coverData.totalAmount?.isEmpty ?? true) ? '금액을 터치하여 편집' : coverData.totalAmount!,
+                        style: TextStyle(
+                          color: (coverData.totalAmount?.isEmpty ?? true) ? Colors.white.withValues(alpha: 0.7) : Colors.white,
+                          fontSize: isForExport ? 14 : 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            // 하단 정보
+            Center(
+              child: Text(
+                '본 견적서의 유효기간은 발행일로부터 30일입니다',
+                style: TextStyle(
+                  fontSize: isForExport ? 8 : 7,
+                  color: Colors.grey[500],
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+          ],
+        ),
+      ),
+    ),
+    );
+  }
+  
+  Widget _buildEditableInfoRow(String label, String value, String fieldType) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: isForExport ? 11 : 10,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+          Text(
+            ':  ',
+            style: TextStyle(
+              fontSize: isForExport ? 11 : 10,
+              color: Colors.grey[600],
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: isForExport ? null : () => onFieldTap?.call(fieldType),
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                child: Text(
+                  value.isEmpty ? '$label을 터치하여 편집' : value,
+                  style: TextStyle(
+                    fontSize: isForExport ? 11 : 10,
+                    fontWeight: FontWeight.w500,
+                    color: value.isEmpty ? Colors.grey[400] : Colors.black87,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildPhotoTextTemplate() {
+    return Container(
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            // 제목
+            GestureDetector(
+              onTap: isForExport ? null : () => onFieldTap?.call('title'),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                child: Text(
+                  coverData.title.isEmpty ? '제목을 터치하여 편집' : coverData.title,
+                  style: TextStyle(
+                    fontSize: isForExport ? 24 : 20,
+                    fontWeight: FontWeight.bold,
+                    color: coverData.title.isEmpty ? Colors.grey[400] : coverData.primaryColor,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            // 사진 영역
+            Expanded(
+              flex: 3,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: coverData.photoPath != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          coverData.photoPath!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return _buildPhotoPlaceholder();
+                          },
+                        ),
+                      )
+                    : _buildPhotoPlaceholder(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            // 텍스트 영역
+            Expanded(
+              flex: 2,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ...coverData.textLines
+                          .asMap()
+                          .entries
+                          .map((entry) {
+                            final index = entry.key;
+                            final line = entry.value;
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: GestureDetector(
+                                onTap: isForExport ? null : () => onFieldTap?.call('textLine', textLineIndex: index),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  child: Text(
+                                    line.trim().isEmpty ? '텍스트를 터치하여 편집' : line,
+                                    style: TextStyle(
+                                      fontSize: isForExport ? 14 : 12,
+                                      height: 1.4,
+                                      color: line.trim().isEmpty ? Colors.grey[400] : Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                      // Add more lines if needed
+                      if (coverData.textLines.length < 10)
+                        ...List.generate(10 - coverData.textLines.length, (index) {
+                          final actualIndex = coverData.textLines.length + index;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: GestureDetector(
+                              onTap: isForExport ? null : () => onFieldTap?.call('textLine', textLineIndex: actualIndex),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                child: Text(
+                                  '텍스트를 터치하여 편집',
+                                  style: TextStyle(
+                                    fontSize: isForExport ? 14 : 12,
+                                    height: 1.4,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildTextOnlyTemplate() {
+    return Container(
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(30),
+        child: Column(
+          children: [
+            // 제목
+            GestureDetector(
+              onTap: isForExport ? null : () => onFieldTap?.call('title'),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: coverData.primaryColor,
+                      width: 3,
+                    ),
+                  ),
+                ),
+                child: Text(
+                  coverData.title.isEmpty ? '제목을 터치하여 편집' : coverData.title,
+                  style: TextStyle(
+                    fontSize: isForExport ? 28 : 24,
+                    fontWeight: FontWeight.bold,
+                    color: coverData.title.isEmpty ? Colors.grey[400] : coverData.primaryColor,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
+            // 텍스트 내용
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ...coverData.textLines
+                        .asMap()
+                        .entries
+                        .map((entry) {
+                          final index = entry.key;
+                          final line = entry.value;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: GestureDetector(
+                              onTap: isForExport ? null : () => onFieldTap?.call('textLine', textLineIndex: index),
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: coverData.primaryColor.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: coverData.primaryColor.withValues(alpha: 0.2),
+                                  ),
+                                ),
+                                child: Text(
+                                  line.trim().isEmpty ? '텍스트를 터치하여 편집' : line,
+                                  style: TextStyle(
+                                    fontSize: isForExport ? 16 : 14,
+                                    height: 1.5,
+                                    color: line.trim().isEmpty ? Colors.grey[400] : Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                    // Add more lines if needed
+                    if (coverData.textLines.length < 10)
+                      ...List.generate(10 - coverData.textLines.length, (index) {
+                        final actualIndex = coverData.textLines.length + index;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: GestureDetector(
+                            onTap: isForExport ? null : () => onFieldTap?.call('textLine', textLineIndex: actualIndex),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: coverData.primaryColor.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: coverData.primaryColor.withValues(alpha: 0.2),
+                                ),
+                              ),
+                              child: Text(
+                                '텍스트를 터치하여 편집',
+                                style: TextStyle(
+                                  fontSize: isForExport ? 16 : 14,
+                                  height: 1.5,
+                                  color: Colors.grey[400],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildPhotoPlaceholder() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.add_photo_alternate,
+          size: isForExport ? 60 : 50,
+          color: Colors.grey[400],
+        ),
+        const SizedBox(height: 10),
+        Text(
+          '사진을 추가하세요',
+          style: TextStyle(
+            color: Colors.grey[500],
+            fontSize: isForExport ? 16 : 14,
+          ),
+        ),
+      ],
+    );
   }
 }

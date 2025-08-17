@@ -877,7 +877,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
   void _zoomPhoto(int index) {
     setState(() {
       final currentLevel = photoZoomLevels[index] ?? 0;
-      if (currentLevel < 5) {
+      if (currentLevel < 7) {
         photoZoomLevels[index] = currentLevel + 1;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('사진 ${index + 1} - ${currentLevel + 1}단계 확대')),
@@ -899,6 +899,8 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       case 3: return 1.6;   // 3단계
       case 4: return 1.8;   // 4단계
       case 5: return 2.0;   // 5단계
+      case 6: return 2.2;   // 6단계
+      case 7: return 2.5;   // 7단계 (최대 확대)
       default: return 1.0;
     }
   }
@@ -1670,6 +1672,58 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     );
   }
 
+  void _deleteCurrentPage() {
+    if (pages.length <= 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('마지막 페이지는 삭제할 수 없습니다')),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('⚠️ 페이지 삭제 확인'),
+          content: Text('현재 페이지 ${currentPageIndex + 1}을(를) 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _confirmDeleteCurrentPage();
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('삭제'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _confirmDeleteCurrentPage() {
+    setState(() {
+      // 현재 페이지 삭제
+      pages.removeAt(currentPageIndex);
+      
+      // 삭제 후 페이지 인덱스 조정
+      if (currentPageIndex >= pages.length) {
+        currentPageIndex = pages.length - 1;
+      }
+      
+      // 새로운 현재 페이지 로드
+      _loadPageData(currentPageIndex);
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('페이지가 삭제되었습니다. 현재 페이지: ${currentPageIndex + 1}')),
+    );
+  }
+
   void _showResetDialog() {
     showDialog(
       context: context,
@@ -1904,21 +1958,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: Row(
               children: [
-                const Text('분할:', style: TextStyle(fontSize: 12)),
-                const SizedBox(width: 4),
-                DropdownButton<int>(
-                  value: photoCount,
-                  items: [1, 2, 3, 4].map((count) => DropdownMenuItem(
-                    value: count,
-                    child: Text('$count장'),
-                  )).toList(),
-                  onChanged: (value) {
-                    if (value != null && value != photoCount) {
-                      _showLayoutChangeWarning(value);
-                    }
-                  },
-                ),
-                const SizedBox(width: 12),
+                // 1. 방향
                 const Text('방향:', style: TextStyle(fontSize: 12)),
                 const SizedBox(width: 4),
                 Container(
@@ -1992,6 +2032,60 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
+                // 2. 분할
+                const Text('분할:', style: TextStyle(fontSize: 12)),
+                const SizedBox(width: 4),
+                DropdownButton<int>(
+                  value: photoCount,
+                  items: [1, 2, 3, 4].map((count) => DropdownMenuItem(
+                    value: count,
+                    child: Text('$count장'),
+                  )).toList(),
+                  onChanged: (value) {
+                    if (value != null && value != photoCount) {
+                      _showLayoutChangeWarning(value);
+                    }
+                  },
+                ),
+                const SizedBox(width: 8),
+                // 3. 페이지 추가
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        _addEmptyPage();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                        ),
+                        child: const Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add_box, color: Colors.blue, size: 24),
+                            SizedBox(height: 2),
+                            Text(
+                              '페이지',
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                // 4. 쪽번호
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   child: Material(
@@ -2037,7 +2131,8 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     ),
                   ),
                 ),
-                // 겉표지 드롭다운
+                const SizedBox(width: 6),
+                // 5. 겉표지
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   child: Material(
@@ -2087,43 +2182,6 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     ),
                   ),
                 ),
-                const Spacer(),
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 2),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        _addEmptyPage();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
-                        ),
-                        child: const Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.add_box, color: Colors.blue, size: 24),
-                            SizedBox(height: 2),
-                            Text(
-                              '페이지',
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
               ],
             ),
           ),
@@ -2611,9 +2669,8 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                   } else if (selectedSlot != null && photoData.containsKey(selectedSlot)) {
                     removePhoto(selectedSlot!);
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('삭제할 사진이나 도형을 먼저 선택해주세요')),
-                    );
+                    // 선택된 항목이 없으면 페이지 삭제 확인
+                    _deleteCurrentPage();
                   }
                 },
               ),
@@ -3401,7 +3458,6 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
 
       // PDF 문서 생성
       final pdf = pw.Document();
-      final originalPageIndex = currentPageIndex; // 원래 페이지 인덱스 저장
       
       // 겉표지가 있으면 먼저 추가
       if (coverPage != null && coverPage!.template != 'none') {
@@ -3450,16 +3506,36 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         }
       }
       
+      // 현재 편집 상태 백업
+      final originalCurrentPageIndex = currentPageIndex;
+      final originalPhotoData = Map<int, String>.from(photoData);
+      final originalPhotoTitles = Map<int, String>.from(photoTitles);
+      final originalPhotoRotations = Map<int, double>.from(photoRotations);
+      final originalPhotoOffsets = Map<int, Offset>.from(photoOffsets);
+      final originalPhotoScales = Map<int, double>.from(photoScales);
+      final originalPhotoZoomLevels = Map<int, int>.from(photoZoomLevels);
+      final originalShapes = List<ShapeOverlay>.from(shapes);
+      
       // 각 페이지를 PDF로 변환
       for (int pageIndex = 0; pageIndex < pages.length; pageIndex++) {
-        // 현재 페이지로 전환
-        setState(() {
-          currentPageIndex = pageIndex;
-        });
-        _loadPageData(pageIndex);
-        
-        // UI 업데이트 완료 대기
-        await Future.delayed(const Duration(milliseconds: 500));
+        // 현재 페이지가 아닌 경우에만 페이지 데이터를 로드
+        if (pageIndex != originalCurrentPageIndex) {
+          setState(() {
+            currentPageIndex = pageIndex;
+          });
+          _loadPageData(pageIndex);
+          
+          // UI 업데이트 완료 대기
+          await Future.delayed(const Duration(milliseconds: 500));
+        } else {
+          // 현재 페이지인 경우 편집 상태를 유지
+          setState(() {
+            currentPageIndex = pageIndex;
+          });
+          
+          // 짧은 대기 시간
+          await Future.delayed(const Duration(milliseconds: 100));
+        }
         
         final Uint8List? imageBytes = await _screenshotController.capture(
           pixelRatio: 4.0, // 초고해상도 캡처 (PDF용)
@@ -3492,11 +3568,24 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         }
       }
       
-      // 원래 페이지로 복원
+      // 원래 페이지와 편집 상태로 완전 복원
       setState(() {
-        currentPageIndex = originalPageIndex;
+        currentPageIndex = originalCurrentPageIndex;
+        photoData.clear();
+        photoData.addAll(originalPhotoData);
+        photoTitles.clear();
+        photoTitles.addAll(originalPhotoTitles);
+        photoRotations.clear();
+        photoRotations.addAll(originalPhotoRotations);
+        photoOffsets.clear();
+        photoOffsets.addAll(originalPhotoOffsets);
+        photoScales.clear();
+        photoScales.addAll(originalPhotoScales);
+        photoZoomLevels.clear();
+        photoZoomLevels.addAll(originalPhotoZoomLevels);
+        shapes.clear();
+        shapes.addAll(originalShapes);
       });
-      _loadPageData(originalPageIndex);
       
       // 로딩 다이얼로그 닫기
       if (mounted) {

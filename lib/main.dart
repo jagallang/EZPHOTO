@@ -9,6 +9,7 @@ import 'package:gal/gal.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LocalGradientImage extends StatelessWidget {
   final String imageId;
@@ -154,16 +155,16 @@ class SmartImage extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
           border: Border.all(color: Colors.grey[300]!, width: 1),
         ),
-        child: const Center(
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.camera_alt, size: 40, color: Colors.grey),
-              SizedBox(height: 8),
+              const Icon(Icons.camera_alt, size: 40, color: Colors.grey),
+              const SizedBox(height: 8),
               Text(
-                '사진추가',
+                'photo_add'.tr(),
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
           ),
@@ -405,14 +406,24 @@ class CoverPageData {
   }) : textLines = textLines ?? List.filled(10, '');
 }
 
-void main() {
+void main() async {
   // 세로모드로 고정
   WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
+  
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  runApp(const PhotoLayoutApp());
+  
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [Locale('ko'), Locale('en')],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('ko'),
+      child: const PhotoLayoutApp(),
+    ),
+  );
 }
 
 class PhotoLayoutApp extends StatelessWidget {
@@ -421,13 +432,16 @@ class PhotoLayoutApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'REphoto',
+      title: 'app_title'.tr(),
       theme: ThemeData(
         primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
       home: const PhotoEditorScreen(),
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
     );
   }
 }
@@ -607,7 +621,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('이미지를 처리하고 있습니다...'),
-              duration: Duration(seconds: 2),
+              duration: Duration(milliseconds: 500),
             ),
           );
         }
@@ -634,7 +648,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
             // 개별 이미지 처리 실패
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('이미지 "${images[i].name}" 처리 실패')),
+                SnackBar(
+                  content: Text('이미지 "${images[i].name}" 처리 실패'),
+                  duration: const Duration(milliseconds: 100),
+                ),
               );
             }
           }
@@ -644,13 +661,19 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           _addMultiplePhotosFromPathsWithNames(imageDataUrls, imageNames);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${imageDataUrls.length}장의 사진이 추가되었습니다')),
+              SnackBar(
+                content: Text('${imageDataUrls.length}장의 사진이 추가되었습니다'),
+                duration: const Duration(milliseconds: 200),
+              ),
             );
           }
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('처리 가능한 이미지가 없습니다')),
+              const SnackBar(
+                content: Text('처리 가능한 이미지가 없습니다'),
+                duration: Duration(milliseconds: 100),
+              ),
             );
           }
         }
@@ -690,7 +713,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     // 새로운 빈 페이지 생성 - 현재 페이지의 레이아웃 사용
     final currentPageLayout = pages.isNotEmpty ? pages[currentPageIndex].layoutCount : 2;
     final newPage = PageData(
-      title: '페이지 ${pages.length + 1}',
+      title: '${'page_number'.tr()} ${pages.length + 1}',
       layoutCount: currentPageLayout, // 현재 페이지의 레이아웃 사용
       photoData: {}, // 빈 사진 슬롯들
       photoTitles: {}, // 빈 제목들
@@ -819,7 +842,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       }
       
       newPages.add(PageData(
-        title: '페이지 ${pageNum + 1}',
+        title: '${'page_number'.tr()} ${pageNum + 1}',
         layoutCount: photoCount,
         photoData: pagePhotoData,
         photoTitles: pagePhotoTitles,
@@ -870,25 +893,32 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       photoZoomLevels.remove(index);
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('사진 ${index + 1}이 원본 위치로 복원되었습니다')),
+      SnackBar(
+        content: Text('사진 ${index + 1}이 원본 위치로 복원되었습니다'),
+        duration: const Duration(milliseconds: 100),
+      ),
     );
   }
 
   void _zoomPhoto(int index) {
-    setState(() {
-      final currentLevel = photoZoomLevels[index] ?? 0;
-      if (currentLevel < 7) {
-        photoZoomLevels[index] = currentLevel + 1;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('사진 ${index + 1} - ${currentLevel + 1}단계 확대')),
-        );
-      } else {
-        photoZoomLevels[index] = 0;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('사진 ${index + 1} - 원본 크기로 복원')),
-        );
-      }
-    });
+    final currentLevel = photoZoomLevels[index] ?? 0;
+    if (currentLevel < 7) {
+      photoZoomLevels[index] = currentLevel + 1;
+    } else {
+      photoZoomLevels[index] = 0;
+    }
+    
+    setState(() {});
+    
+    // 매우 짧은 피드백만 제공
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(currentLevel < 7 
+            ? '${currentLevel + 1}단계 확대' 
+            : '원본 크기'),
+        duration: const Duration(milliseconds: 200),
+      ),
+    );
   }
 
   double _getScaleFromZoomLevel(int zoomLevel) {
@@ -1306,7 +1336,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('겉표지 템플릿 선택'),
+              title: Text('cover_page'.tr()),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1927,14 +1957,14 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                         onPressed: () {
                           _showSaveConfirmationDialog();
                         },
-                        child: const Column(
+                        child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.save, color: Colors.white, size: 20),
-                            SizedBox(height: 2),
+                            const Icon(Icons.save, color: Colors.white, size: 20),
+                            const SizedBox(height: 2),
                             Text(
-                              '저장',
-                              style: TextStyle(
+                              'save'.tr(),
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 10,
@@ -2065,14 +2095,14 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
                         ),
-                        child: const Column(
+                        child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.add_box, color: Colors.blue, size: 24),
-                            SizedBox(height: 2),
+                            const Icon(Icons.add_box, color: Colors.blue, size: 24),
+                            const SizedBox(height: 2),
                             Text(
-                              '페이지',
-                              style: TextStyle(
+                              'page_number'.tr(),
+                              style: const TextStyle(
                                 color: Colors.blue,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 11,
@@ -2596,7 +2626,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     _zoomPhoto(selectedSlot!);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('확대할 사진을 먼저 선택해주세요')),
+                      const SnackBar(
+                        content: Text('확대할 사진을 먼저 선택해주세요'),
+                        duration: Duration(milliseconds: 100),
+                      ),
                     );
                   }
                 },
@@ -2609,7 +2642,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     _resetPhotoPosition(selectedSlot!);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('사진을 먼저 선택해주세요')),
+                      const SnackBar(
+                        content: Text('사진을 먼저 선택해주세요'),
+                        duration: Duration(milliseconds: 100),
+                      ),
                     );
                   }
                 },
@@ -2881,16 +2917,16 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 ),
               )
             else
-              const Center(
+              Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.camera_alt, size: 40, color: Colors.grey),
-                    SizedBox(height: 8),
+                    const Icon(Icons.camera_alt, size: 40, color: Colors.grey),
+                    const SizedBox(height: 8),
                     Text(
-                      '사진추가',
+                      'photo_add'.tr(),
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
                 ),
@@ -2926,7 +2962,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                         }
                         
                         return Text(
-                          photoTitles[index] ?? '사진제목',
+                          photoTitles[index] ?? 'photo_title'.tr(),
                           style: TextStyle(
                             fontSize: fontSize,
                             color: (photoTitles[index] == null || photoTitles[index]!.isEmpty) 
@@ -3232,9 +3268,9 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     ),
                   ),
                   icon: const Icon(Icons.image, size: 20),
-                  label: const Text(
-                    '이미지로 저장',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  label: Text(
+                    'save_as_image'.tr(),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -3256,9 +3292,9 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     ),
                   ),
                   icon: const Icon(Icons.picture_as_pdf, size: 20),
-                  label: const Text(
-                    'PDF로 저장',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  label: Text(
+                    'save_as_pdf'.tr(),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -3281,6 +3317,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
   }
 
   Future<void> _exportPagesToGallery() async {
+    // 현재 상태 백업
+    final originalCurrentPageIndex = currentPageIndex;
+    final originalShowCoverInPreview = showCoverInPreview;
+    
     try {
       // 권한 확인 및 요청
       if (!kIsWeb) {
@@ -3298,6 +3338,14 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       }
 
       _saveCurrentPageData(); // 현재 페이지 저장
+      
+      // 겉표지 미리보기 비활성화 (사진 페이지 캡처를 위해)
+      setState(() {
+        showCoverInPreview = false;
+      });
+      
+      // 겉표지 비활성화 후 UI 업데이트 대기
+      await Future.delayed(const Duration(milliseconds: 200));
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -3353,7 +3401,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('겉표지 저장 실패: $saveError'),
-                    duration: const Duration(milliseconds: 600),
+                    duration: const Duration(milliseconds: 100),
                   ),
                 );
               }
@@ -3363,50 +3411,66 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       }
       
       for (int pageIndex = 0; pageIndex < pages.length; pageIndex++) {
-        // 페이지 로드
+        print('이미지 저장: 페이지 ${pageIndex + 1}/${pages.length} 처리 시작');
+        
+        // 페이지 로드 및 상태 업데이트
+        setState(() {
+          currentPageIndex = pageIndex;
+        });
         _loadPageData(pageIndex);
         
-        // UI 업데이트를 위한 대기
-        await Future.delayed(const Duration(milliseconds: 500));
+        // UI 업데이트를 위한 충분한 대기
+        await Future.delayed(const Duration(milliseconds: 300));
         
         // 스크린샷 캡처 (고해상도)
-        final Uint8List? imageBytes = await _screenshotController.capture(
-          delay: const Duration(milliseconds: 200),
-          pixelRatio: 3.0, // 고해상도 캡처
-        );
-        
-        if (imageBytes != null) {
-          if (kIsWeb) {
-            // 웹에서는 기존 방식 유지
-            savedCount++;
-          } else {
-            // 모바일에서 갤러리에 저장
-            try {
-              await Gal.putImageBytes(
-                imageBytes,
-                name: 'REphoto_Page_${pageIndex + 1}_${DateTime.now().millisecondsSinceEpoch}',
-              );
-              
+        try {
+          print('이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 시도');
+          final Uint8List? imageBytes = await _screenshotController.capture(
+            delay: const Duration(milliseconds: 200),
+            pixelRatio: 3.0, // 고해상도 캡처
+          );
+          
+          if (imageBytes != null) {
+            print('이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 성공 (${imageBytes.length} bytes)');
+            
+            if (kIsWeb) {
+              // 웹에서는 기존 방식 유지
               savedCount++;
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('페이지 ${pageIndex + 1} 저장 완료'),
-                    duration: const Duration(milliseconds: 600),
-                  ),
+            } else {
+              // 모바일에서 갤러리에 저장
+              try {
+                await Gal.putImageBytes(
+                  imageBytes,
+                  name: 'REphoto_Page_${pageIndex + 1}_${DateTime.now().millisecondsSinceEpoch}',
                 );
-              }
-            } catch (saveError) {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('페이지 ${pageIndex + 1} 저장 실패: $saveError'),
-                    duration: const Duration(milliseconds: 600),
-                  ),
-                );
+                
+                savedCount++;
+                print('이미지 저장: 페이지 ${pageIndex + 1} 갤러리 저장 완료');
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('페이지 ${pageIndex + 1} 저장 완료'),
+                      duration: const Duration(milliseconds: 100),
+                    ),
+                  );
+                }
+              } catch (saveError) {
+                print('이미지 저장: 페이지 ${pageIndex + 1} 갤러리 저장 실패: $saveError');
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('페이지 ${pageIndex + 1} 저장 실패: $saveError'),
+                      duration: const Duration(milliseconds: 100),
+                    ),
+                  );
+                }
               }
             }
+          } else {
+            print('이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 실패 - imageBytes가 null');
           }
+        } catch (captureError) {
+          print('이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 중 오류: $captureError');
         }
         
         // 다음 페이지 처리 전 짧은 대기
@@ -3414,6 +3478,14 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           await Future.delayed(const Duration(milliseconds: 300));
         }
       }
+      
+      // 원래 상태로 복원
+      print('이미지 저장: 원래 페이지 ${originalCurrentPageIndex + 1}로 복원');
+      setState(() {
+        currentPageIndex = originalCurrentPageIndex;
+        showCoverInPreview = originalShowCoverInPreview;
+      });
+      _loadPageData(originalCurrentPageIndex);
       
       // 최종 결과 메시지
       if (mounted) {
@@ -3426,6 +3498,14 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         );
       }
     } catch (e) {
+      // 오류 발생 시에도 원래 상태로 복원
+      print('이미지 저장: 오류 발생, 원래 페이지 ${originalCurrentPageIndex + 1}로 복원');
+      setState(() {
+        currentPageIndex = originalCurrentPageIndex;
+        showCoverInPreview = originalShowCoverInPreview;
+      });
+      _loadPageData(originalCurrentPageIndex);
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -3506,6 +3586,29 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         }
       }
       
+      // 현재 페이지 데이터 먼저 저장
+      _saveCurrentPageData();
+      
+      debugPrint('PDF 생성: 현재 페이지 저장 완료. pages.length=${pages.length}, currentPageIndex=$currentPageIndex');
+      
+      // pages가 비어있다면 현재 상태로 임시 페이지 생성
+      if (pages.isEmpty) {
+        debugPrint('PDF 생성: pages가 비어있음. 현재 상태로 페이지 생성');
+        pages.add(PageData(
+          title: pageTitle,
+          layoutCount: photoCount,
+          photoData: Map<int, String>.from(photoData),
+          photoTitles: Map<int, String>.from(photoTitles),
+          photoRotations: Map<int, double>.from(photoRotations),
+          photoOffsets: Map<int, Offset>.from(photoOffsets),
+          photoScales: Map<int, double>.from(photoScales),
+          photoZoomLevels: Map<int, int>.from(photoZoomLevels),
+          shapes: List<ShapeOverlay>.from(shapes),
+        ));
+        currentPageIndex = 0;
+        debugPrint('PDF 생성: 임시 페이지 생성 완료. pages.length=${pages.length}');
+      }
+      
       // 현재 편집 상태 백업
       final originalCurrentPageIndex = currentPageIndex;
       final originalPhotoData = Map<int, String>.from(photoData);
@@ -3516,55 +3619,67 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       final originalPhotoZoomLevels = Map<int, int>.from(photoZoomLevels);
       final originalShapes = List<ShapeOverlay>.from(shapes);
       
+      // 겉표지 상태 백업 및 비활성화
+      final originalShowCoverInPreview = showCoverInPreview;
+      debugPrint('PDF 생성: 겉표지 상태 백업 (showCoverInPreview: $originalShowCoverInPreview)');
+      
+      // PDF 생성 동안 겉표지 숨기기
+      setState(() {
+        showCoverInPreview = false;
+      });
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      debugPrint('PDF 생성: ${pages.length}개 페이지 처리 시작');
+      
       // 각 페이지를 PDF로 변환
       for (int pageIndex = 0; pageIndex < pages.length; pageIndex++) {
-        // 현재 페이지가 아닌 경우에만 페이지 데이터를 로드
-        if (pageIndex != originalCurrentPageIndex) {
-          setState(() {
-            currentPageIndex = pageIndex;
-          });
-          _loadPageData(pageIndex);
-          
-          // UI 업데이트 완료 대기
-          await Future.delayed(const Duration(milliseconds: 500));
-        } else {
-          // 현재 페이지인 경우 편집 상태를 유지
-          setState(() {
-            currentPageIndex = pageIndex;
-          });
-          
-          // 짧은 대기 시간
-          await Future.delayed(const Duration(milliseconds: 100));
-        }
+        debugPrint('PDF 생성: 페이지 ${pageIndex + 1}/${pages.length} 처리 중');
         
-        final Uint8List? imageBytes = await _screenshotController.capture(
-          pixelRatio: 4.0, // 초고해상도 캡처 (PDF용)
-          delay: const Duration(milliseconds: 100),
-        );
+        // 모든 페이지에 대해 페이지 데이터를 로드
+        setState(() {
+          currentPageIndex = pageIndex;
+        });
+        _loadPageData(pageIndex);
         
-        if (imageBytes != null) {
-          final image = pw.MemoryImage(imageBytes);
-          
-          pdf.addPage(
-            pw.Page(
-              pageFormat: PdfPageFormat.a4,
-              margin: pw.EdgeInsets.zero, // 여백 완전 제거
-              clip: false, // 클리핑 비활성화
-              build: (pw.Context context) {
-                // A4 크기 (포인트 단위)
-                const double a4Width = 595.28; // A4 width in points
-                const double a4Height = 841.89; // A4 height in points
-                
-                return pw.Image(
-                  image,
-                  width: a4Width,
-                  height: a4Height,
-                  fit: pw.BoxFit.fill, // 비율 무시하고 전체 채우기
-                  dpi: 300, // 고해상도 설정
-                );
-              },
-            ),
+        // UI 업데이트 완료 대기
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        try {
+          final Uint8List? imageBytes = await _screenshotController.capture(
+            pixelRatio: 4.0, // 초고해상도 캡처 (PDF용)
+            delay: const Duration(milliseconds: 50),
           );
+          
+          if (imageBytes != null) {
+            debugPrint('PDF 생성: 페이지 ${pageIndex + 1} 스크린샷 캡처 성공 (${imageBytes.length} bytes)');
+            final image = pw.MemoryImage(imageBytes);
+            
+            pdf.addPage(
+              pw.Page(
+                pageFormat: PdfPageFormat.a4,
+                margin: pw.EdgeInsets.zero, // 여백 완전 제거
+                clip: false, // 클리핑 비활성화
+                build: (pw.Context context) {
+                  // A4 크기 (포인트 단위)
+                  const double a4Width = 595.28; // A4 width in points
+                  const double a4Height = 841.89; // A4 height in points
+                  
+                  return pw.Image(
+                    image,
+                    width: a4Width,
+                    height: a4Height,
+                    fit: pw.BoxFit.fill, // 비율 무시하고 전체 채우기
+                    dpi: 300, // 고해상도 설정
+                  );
+                },
+              ),
+            );
+            debugPrint('PDF 생성: 페이지 ${pageIndex + 1} PDF에 추가 완료');
+          } else {
+            debugPrint('PDF 생성: 페이지 ${pageIndex + 1} 스크린샷 캡처 실패');
+          }
+        } catch (e) {
+          debugPrint('PDF 생성: 페이지 ${pageIndex + 1} 오류 - $e');
         }
       }
       
@@ -3585,7 +3700,12 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         photoZoomLevels.addAll(originalPhotoZoomLevels);
         shapes.clear();
         shapes.addAll(originalShapes);
+        // 겉표지 상태 복원
+        showCoverInPreview = originalShowCoverInPreview;
       });
+      _loadPageData(originalCurrentPageIndex);
+      
+      debugPrint('PDF 생성: 모든 상태 복원 완료 (showCoverInPreview: $originalShowCoverInPreview)');
       
       // 로딩 다이얼로그 닫기
       if (mounted) {
@@ -3662,22 +3782,31 @@ class CoverPageWidget extends StatelessWidget {
   Widget _buildReportTemplate() {
     return Container(
       color: Colors.white,
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 상단 색상 바
-            Container(
+      height: isForExport ? 841.89 : 600, // A4 height for export, fixed height for preview
+      child: Stack(
+        children: [
+          // 상단 색상 바
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
               height: isForExport ? 80 : 60,
               width: double.infinity,
               color: coverData.primaryColor,
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          ),
+          // 중앙 콘텐츠
+          Positioned.fill(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 32, 
+                vertical: isForExport ? 60 : 20
+              ),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // 제목
                   GestureDetector(
@@ -3777,20 +3906,26 @@ class CoverPageWidget extends StatelessWidget {
                 ],
               ),
             ),
-            // 하단 색상 바
-            Container(
+          ),
+          // 하단 색상 바
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
               height: isForExport ? 50 : 40,
               width: double.infinity,
               color: coverData.primaryColor.withValues(alpha: 0.8),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
   
   Widget _buildProposalTemplate() {
     return Container(
+      height: isForExport ? 841.89 : 600, // A4 height for export, fixed height for preview
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -3829,14 +3964,17 @@ class CoverPageWidget extends StatelessWidget {
             ),
           ),
           // 내용
-          SingleChildScrollView(
+          Positioned.fill(
             child: Padding(
-              padding: const EdgeInsets.all(30),
+              padding: EdgeInsets.symmetric(
+                horizontal: 32, 
+                vertical: isForExport ? 60 : 20
+              ),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                    const SizedBox(height: 60),
                 // 제목
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 10),
@@ -3864,6 +4002,8 @@ class CoverPageWidget extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                                 color: coverData.title.isEmpty ? Colors.grey[400] : coverData.primaryColor,
                               ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ),
@@ -3878,6 +4018,8 @@ class CoverPageWidget extends StatelessWidget {
                                 fontSize: isForExport ? 20 : 18,
                                 color: coverData.subtitle.isEmpty ? Colors.grey[400] : Colors.grey[700],
                               ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ),
@@ -3885,12 +4027,13 @@ class CoverPageWidget extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: isForExport ? 400 : 300),
+                const SizedBox(height: 40),
                 // 하단 정보
                 Align(
                   alignment: Alignment.bottomRight,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       GestureDetector(
                         onTap: isForExport ? null : () => onFieldTap?.call('organization'),
@@ -3903,6 +4046,8 @@ class CoverPageWidget extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                               color: (coverData.organization?.isEmpty ?? true) ? Colors.grey[400] : coverData.primaryColor,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
@@ -3917,6 +4062,8 @@ class CoverPageWidget extends StatelessWidget {
                               fontSize: isForExport ? 14 : 12,
                               color: coverData.author.isEmpty ? Colors.grey[400] : Colors.black87,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
@@ -3931,6 +4078,8 @@ class CoverPageWidget extends StatelessWidget {
                               fontSize: isForExport ? 12 : 10,
                               color: coverData.date.isEmpty ? Colors.grey[400] : Colors.grey[600],
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
@@ -3948,6 +4097,7 @@ class CoverPageWidget extends StatelessWidget {
   
   Widget _buildAlbumTemplate() {
     return Container(
+      height: isForExport ? 841.89 : 600, // A4 height for export, fixed height for preview
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -3958,107 +4108,116 @@ class CoverPageWidget extends StatelessWidget {
           ],
         ),
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 40),
-            // 장식 프레임
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: coverData.primaryColor,
-                    width: 3,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                Icon(
-                  Icons.photo_album,
-                  size: isForExport ? 80 : 60,
-                  color: coverData.primaryColor,
-                ),
-                const SizedBox(height: 30),
-                GestureDetector(
-                  onTap: isForExport ? null : () => onFieldTap?.call('title'),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: Text(
-                      coverData.title.isEmpty ? '제목을 터치하여 편집' : coverData.title,
-                      style: TextStyle(
-                        fontSize: isForExport ? 32 : 26,
-                        fontWeight: FontWeight.bold,
-                        color: coverData.title.isEmpty ? Colors.grey[400] : coverData.primaryColor,
-                        fontFamily: 'serif',
+      child: Stack(
+        children: [
+          // 중앙 콘텐츠
+          Positioned.fill(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: 32, 
+                vertical: isForExport ? 60 : 20
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 장식 프레임
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: coverData.primaryColor,
+                          width: 3,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      textAlign: TextAlign.center,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.photo_album,
+                            size: isForExport ? 80 : 60,
+                            color: coverData.primaryColor,
+                          ),
+                          const SizedBox(height: 30),
+                          GestureDetector(
+                            onTap: isForExport ? null : () => onFieldTap?.call('title'),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              child: Text(
+                                coverData.title.isEmpty ? '제목을 터치하여 편집' : coverData.title,
+                                style: TextStyle(
+                                  fontSize: isForExport ? 32 : 26,
+                                  fontWeight: FontWeight.bold,
+                                  color: coverData.title.isEmpty ? Colors.grey[400] : coverData.primaryColor,
+                                  fontFamily: 'serif',
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          GestureDetector(
+                            onTap: isForExport ? null : () => onFieldTap?.call('subtitle'),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              child: Text(
+                                coverData.subtitle.isEmpty ? '부제목을 터치하여 편집' : coverData.subtitle,
+                                style: TextStyle(
+                                  fontSize: isForExport ? 18 : 16,
+                                  color: coverData.subtitle.isEmpty ? Colors.grey[400] : Colors.grey[700],
+                                  fontStyle: FontStyle.italic,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 15),
-                GestureDetector(
-                  onTap: isForExport ? null : () => onFieldTap?.call('subtitle'),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: Text(
-                      coverData.subtitle.isEmpty ? '부제목을 터치하여 편집' : coverData.subtitle,
-                      style: TextStyle(
-                        fontSize: isForExport ? 18 : 16,
-                        color: coverData.subtitle.isEmpty ? Colors.grey[400] : Colors.grey[700],
-                        fontStyle: FontStyle.italic,
+                  const SizedBox(height: 30),
+                  // 작성자와 날짜
+                  Column(
+                    children: [
+                      GestureDetector(
+                        onTap: isForExport ? null : () => onFieldTap?.call('author'),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            coverData.author.isEmpty ? '작성자를 터치하여 편집' : coverData.author,
+                            style: TextStyle(
+                              fontSize: isForExport ? 16 : 14,
+                              fontWeight: FontWeight.w500,
+                              color: coverData.author.isEmpty ? Colors.grey[400] : Colors.black87,
+                            ),
+                          ),
+                        ),
                       ),
-                      textAlign: TextAlign.center,
-                    ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: isForExport ? null : () => onFieldTap?.call('date'),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            coverData.date.isEmpty ? '날짜를 터치하여 편집' : coverData.date,
+                            style: TextStyle(
+                              fontSize: isForExport ? 14 : 12,
+                              color: coverData.date.isEmpty ? Colors.grey[400] : Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
                 ],
               ),
             ),
-            ),
-            const SizedBox(height: 30),
-            // 작성자와 날짜
-            Column(
-              children: [
-              GestureDetector(
-                onTap: isForExport ? null : () => onFieldTap?.call('author'),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  child: Text(
-                    coverData.author.isEmpty ? '작성자를 터치하여 편집' : coverData.author,
-                    style: TextStyle(
-                      fontSize: isForExport ? 16 : 14,
-                      fontWeight: FontWeight.w500,
-                      color: coverData.author.isEmpty ? Colors.grey[400] : Colors.black87,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: isForExport ? null : () => onFieldTap?.call('date'),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  child: Text(
-                    coverData.date.isEmpty ? '날짜를 터치하여 편집' : coverData.date,
-                    style: TextStyle(
-                      fontSize: isForExport ? 14 : 12,
-                      color: coverData.date.isEmpty ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ),
-          const SizedBox(height: 20),
         ],
-        ),
       ),
     );
   }
@@ -4066,169 +4225,181 @@ class CoverPageWidget extends StatelessWidget {
   Widget _buildDocumentTemplate() {
     return Container(
       color: Colors.grey[50],
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            // 상단 헤더
-            Container(
+      height: isForExport ? 841.89 : 600, // A4 height for export, fixed height for preview
+      child: Stack(
+        children: [
+          // 상단 헤더
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
               padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  coverData.primaryColor,
-                  coverData.primaryColor.withValues(alpha: 0.7),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    coverData.primaryColor,
+                    coverData.primaryColor.withValues(alpha: 0.7),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.description,
+                    color: Colors.white,
+                    size: isForExport ? 48 : 40,
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'PHOTO REPORT',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontSize: isForExport ? 14 : 12,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        GestureDetector(
+                          onTap: isForExport ? null : () => onFieldTap?.call('title'),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            child: Text(
+                              coverData.title.isEmpty ? '제목을 터치하여 편집' : coverData.title,
+                              style: TextStyle(
+                                color: coverData.title.isEmpty ? Colors.white.withValues(alpha: 0.7) : Colors.white,
+                                fontSize: isForExport ? 28 : 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
               ),
             ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.description,
-                  color: Colors.white,
-                  size: isForExport ? 48 : 40,
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
+          ),
+          // 중앙 콘텐츠
+          Positioned.fill(
+            top: isForExport ? 120 : 120,
+            bottom: isForExport ? 120 : 120,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: isForExport ? null : () => onFieldTap?.call('subtitle'),
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withValues(alpha: 0.2),
+                            spreadRadius: 1,
+                            blurRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        coverData.subtitle.isEmpty ? '부제목을 터치하여 편집' : coverData.subtitle,
+                        style: TextStyle(
+                          fontSize: isForExport ? 20 : 18,
+                          color: coverData.subtitle.isEmpty ? Colors.grey[400] : Colors.grey[800],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // 하단 정보
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(30),
+              color: Colors.white,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'PHOTO REPORT',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          fontSize: isForExport ? 14 : 12,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
                       GestureDetector(
-                        onTap: isForExport ? null : () => onFieldTap?.call('title'),
+                        onTap: isForExport ? null : () => onFieldTap?.call('organization'),
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           child: Text(
-                            coverData.title.isEmpty ? '제목을 터치하여 편집' : coverData.title,
+                            (coverData.organization?.isEmpty ?? true) ? '조직/기관을 터치하여 편집' : coverData.organization!,
                             style: TextStyle(
-                              color: coverData.title.isEmpty ? Colors.white.withValues(alpha: 0.7) : Colors.white,
-                              fontSize: isForExport ? 28 : 24,
-                              fontWeight: FontWeight.bold,
+                              fontSize: isForExport ? 16 : 14,
+                              fontWeight: FontWeight.w600,
+                              color: (coverData.organization?.isEmpty ?? true) ? Colors.grey[400] : coverData.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      GestureDetector(
+                        onTap: isForExport ? null : () => onFieldTap?.call('author'),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            coverData.author.isEmpty ? '작성자를 터치하여 편집' : coverData.author,
+                            style: TextStyle(
+                              fontSize: isForExport ? 14 : 12,
+                              color: coverData.author.isEmpty ? Colors.grey[400] : Colors.grey[700],
                             ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 60),
-          // 중앙 내용
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Column(
-              children: [
-                GestureDetector(
-                  onTap: isForExport ? null : () => onFieldTap?.call('subtitle'),
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withValues(alpha: 0.2),
-                          spreadRadius: 1,
-                          blurRadius: 5,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'Date',
+                        style: TextStyle(
+                          fontSize: isForExport ? 12 : 10,
+                          color: Colors.grey[500],
                         ),
-                      ],
-                    ),
-                    child: Text(
-                      coverData.subtitle.isEmpty ? '부제목을 터치하여 편집' : coverData.subtitle,
-                      style: TextStyle(
-                        fontSize: isForExport ? 20 : 18,
-                        color: coverData.subtitle.isEmpty ? Colors.grey[400] : Colors.grey[800],
                       ),
-                      textAlign: TextAlign.center,
-                    ),
+                      GestureDetector(
+                        onTap: isForExport ? null : () => onFieldTap?.call('date'),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(
+                            coverData.date.isEmpty ? '날짜를 터치하여 편집' : coverData.date,
+                            style: TextStyle(
+                              fontSize: isForExport ? 14 : 12,
+                              fontWeight: FontWeight.w500,
+                              color: coverData.date.isEmpty ? Colors.grey[400] : Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: isForExport ? 200 : 150),
-          // 하단 정보
-          Container(
-            padding: const EdgeInsets.all(30),
-            color: Colors.white,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    GestureDetector(
-                      onTap: isForExport ? null : () => onFieldTap?.call('organization'),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        child: Text(
-                          (coverData.organization?.isEmpty ?? true) ? '조직/기관을 터치하여 편집' : coverData.organization!,
-                          style: TextStyle(
-                            fontSize: isForExport ? 16 : 14,
-                            fontWeight: FontWeight.w600,
-                            color: (coverData.organization?.isEmpty ?? true) ? Colors.grey[400] : coverData.primaryColor,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    GestureDetector(
-                      onTap: isForExport ? null : () => onFieldTap?.call('author'),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        child: Text(
-                          coverData.author.isEmpty ? '작성자를 터치하여 편집' : coverData.author,
-                          style: TextStyle(
-                            fontSize: isForExport ? 14 : 12,
-                            color: coverData.author.isEmpty ? Colors.grey[400] : Colors.grey[700],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Date',
-                      style: TextStyle(
-                        fontSize: isForExport ? 12 : 10,
-                        color: Colors.grey[500],
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: isForExport ? null : () => onFieldTap?.call('date'),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        child: Text(
-                          coverData.date.isEmpty ? '날짜를 터치하여 편집' : coverData.date,
-                          style: TextStyle(
-                            fontSize: isForExport ? 14 : 12,
-                            fontWeight: FontWeight.w500,
-                            color: coverData.date.isEmpty ? Colors.grey[400] : Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
-        ),
       ),
     );
   }

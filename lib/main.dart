@@ -10,6 +10,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:web/web.dart' as web;
 
 class LocalGradientImage extends StatelessWidget {
   final String imageId;
@@ -521,6 +522,112 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     titleController.dispose();
     titleFocusNode.dispose();
     super.dispose();
+  }
+
+  // 웹에서 이미지 다운로드 함수
+  void _downloadImageOnWeb(Uint8List bytes, String filename) {
+    if (kIsWeb) {
+      _showWebDownloadDialog(bytes, filename);
+    }
+  }
+
+  // 웹 다운로드 폴더 선택 모달
+  void _showWebDownloadDialog(Uint8List bytes, String filename) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('💾 이미지 다운로드'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('파일명: $filename'),
+              const SizedBox(height: 16),
+              const Text('다운로드 위치:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const Text('📁 브라우저 기본 다운로드 폴더'),
+              const Text('   (일반적으로 Downloads 폴더)', 
+                style: TextStyle(fontSize: 12, color: Colors.grey)),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 16, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '웹에서는 브라우저 설정에 따라 다운로드 폴더가 결정됩니다.',
+                        style: TextStyle(fontSize: 12, color: Colors.blue),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('취소'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _performWebDownload(bytes, filename);
+              },
+              icon: const Icon(Icons.download),
+              label: const Text('다운로드'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 실제 웹 다운로드 수행
+  void _performWebDownload(Uint8List bytes, String filename) {
+    try {
+      // base64로 인코딩하여 다운로드
+      final base64 = base64Encode(bytes);
+      final dataUrl = 'data:image/png;base64,$base64';
+      
+      final anchor = web.document.createElement('a') as web.HTMLAnchorElement;
+      anchor.href = dataUrl;
+      anchor.download = filename;
+      anchor.style.display = 'none';
+      
+      web.document.body!.appendChild(anchor);
+      anchor.click();
+      web.document.body!.removeChild(anchor);
+      
+      // 다운로드 완료 메시지
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('📥 $filename 다운로드 시작'),
+            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // 웹 다운로드 실패시 에러 처리
+      debugPrint('웹 다운로드 실패: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('다운로드 실패: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   // 페이지 관리 메소드들
@@ -2329,10 +2436,12 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                             ),
                             child: Stack(
                               children: [
-                                CoverPageWidget(
-                                  coverData: coverPage!,
-                                  isForExport: false,
-                                  onFieldTap: _startEditingCoverField,
+                                Positioned.fill(
+                                  child: CoverPageWidget(
+                                    coverData: coverPage!,
+                                    isForExport: false,
+                                    onFieldTap: _startEditingCoverField,
+                                  ),
                                 ),
                               // 편집 중일 때 TextField 오버레이
                               if (isEditingCoverField)
@@ -3381,6 +3490,11 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         // coverBytes is always non-null after successful capture
         {
           if (kIsWeb) {
+            // 웹에서 겉표지 다운로드
+            _downloadImageOnWeb(
+              coverBytes,
+              'REphoto_Cover_${DateTime.now().millisecondsSinceEpoch}.png',
+            );
             savedCount++;
           } else {
             try {
@@ -3435,7 +3549,11 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
             // 이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 성공 (${imageBytes.length} bytes)
             
             if (kIsWeb) {
-              // 웹에서는 기존 방식 유지
+              // 웹에서 페이지 다운로드
+              _downloadImageOnWeb(
+                imageBytes,
+                'REphoto_Page_${pageIndex + 1}_${DateTime.now().millisecondsSinceEpoch}.png',
+              );
               savedCount++;
             } else {
               // 모바일에서 갤러리에 저장
@@ -3490,9 +3608,12 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       
       // 최종 결과 메시지
       if (mounted) {
+        final message = kIsWeb 
+          ? '✅ $savedCount개 페이지가 다운로드되었습니다!'
+          : '✅ $savedCount개 페이지가 갤러리에 저장되었습니다!';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ $savedCount개 페이지가 갤러리에 저장되었습니다!'),
+            content: Text(message),
             duration: const Duration(seconds: 3),
             backgroundColor: Colors.green,
           ),
@@ -3784,7 +3905,7 @@ class CoverPageWidget extends StatelessWidget {
   Widget _buildReportTemplate() {
     return Container(
       color: Colors.white,
-      height: isForExport ? 841.89 : 600, // A4 height for export, fixed height for preview
+      height: isForExport ? 841.89 : null, // A4 height for export, flexible height for preview
       child: Stack(
         children: [
           // 상단 색상 바
@@ -3927,7 +4048,7 @@ class CoverPageWidget extends StatelessWidget {
   
   Widget _buildProposalTemplate() {
     return Container(
-      height: isForExport ? 841.89 : 600, // A4 height for export, fixed height for preview
+      height: isForExport ? 841.89 : null, // A4 height for export, flexible height for preview
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -4099,7 +4220,7 @@ class CoverPageWidget extends StatelessWidget {
   
   Widget _buildAlbumTemplate() {
     return Container(
-      height: isForExport ? 841.89 : 600, // A4 height for export, fixed height for preview
+      height: isForExport ? 841.89 : null, // A4 height for export, flexible height for preview
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -4227,7 +4348,7 @@ class CoverPageWidget extends StatelessWidget {
   Widget _buildDocumentTemplate() {
     return Container(
       color: Colors.grey[50],
-      height: isForExport ? 841.89 : 600, // A4 height for export, fixed height for preview
+      height: isForExport ? 841.89 : null, // A4 height for export, flexible height for preview
       child: Stack(
         children: [
           // 상단 헤더

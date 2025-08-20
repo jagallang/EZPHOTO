@@ -140,7 +140,7 @@ Flutter로 개발된 크로스플랫폼 사진 레이아웃 편집 앱입니다.
 
 - ✅ Android (API 21+)
 - ✅ iOS (12.0+)
-- ✅ Web (Chrome, Safari, Firefox)
+- ✅ **Web (라이브 서비스)**: https://rephoto-88741.web.app
 - ✅ Windows (10+)
 - ✅ macOS (10.14+)
 - ✅ Linux (Ubuntu 18.04+)
@@ -238,7 +238,16 @@ class CoverPageData {
 
 ## 🔄 버전 히스토리
 
-### v1.2.0 (2025-01-20) 🚀 **LATEST**
+### v1.2.01 (2025-08-20) 🚀 **LATEST**
+- 🌐 **웹 다운로드 기능**: 실제 파일 다운로드로 웹 저장 기능 완전 구현
+- 💾 **다운로드 모달**: 파일명, 저장위치 안내가 포함된 친화적 모달 UI
+- 🖼️ **웹 미리보기 개선**: 겉표지 하단 여백 문제 해결로 깔끔한 화면 구성
+- 📱 **반응형 레이아웃**: 웹에서 동적 높이 조정으로 모든 화면 크기 대응
+- 🔗 **Firebase 호스팅**: https://rephoto-88741.web.app 라이브 서비스
+- ⚡ **성능 최적화**: Base64 인코딩 방식으로 빠른 웹 다운로드
+- 🎯 **UX 개선**: 모바일과 동일한 품질의 웹 사용자 경험 제공
+
+### v1.2.0 (2025-01-20)
 - 🔧 **배포 준비 완료**: 프로덕션 서명 키 및 패키지 ID 설정
 - ✨ **코드 품질 개선**: Print 문 제거, null 체크 최적화  
 - 📱 **패키지 ID 변경**: `com.example.pol_photo` → `com.rephoto.app`
@@ -268,7 +277,7 @@ class CoverPageData {
 
 **개발자**: Claude Code와 함께  
 **프로젝트 링크**: [https://github.com/jagallang/EZPHOTO](https://github.com/jagallang/EZPHOTO)  
-**최신 릴리스**: [v1.2.0 릴리스 노트](https://github.com/jagallang/EZPHOTO/releases/tag/v1.2.0)
+**최신 릴리스**: [v1.2.01 릴리스 노트](https://github.com/jagallang/EZPHOTO/releases/tag/v1.2.01)
 
 ---
 

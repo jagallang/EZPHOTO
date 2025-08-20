@@ -1394,15 +1394,15 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     final isSelected = coverPage?.template == value;
     return InkWell(
       onTap: () {
-        print('DEBUG: Template option tapped - value: $value');
+        // Template option tapped - value: $value
         setDialogState(() {
           if (value == 'none') {
             coverPage = null;
-            print('DEBUG: Cover page cleared');
+            // Cover page cleared
           } else {
             coverPage ??= CoverPageData();
             coverPage!.template = value;
-            print('DEBUG: Cover page template set to: $value');
+            // Cover page template set to: $value
             // 템플릿별 기본값 설정
             switch (value) {
               case 'report':
@@ -1468,17 +1468,17 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 coverPage!.primaryColor = Colors.deepPurple;
                 break;
             }
-            print('DEBUG: Template setup completed - title: ${coverPage!.title}');
+            // Template setup completed - title: ${coverPage!.title}
           }
         });
         // 메인 앱 상태도 즉시 업데이트
         setState(() {
           if (coverPage != null && coverPage!.template != 'none') {
             showCoverInPreview = true;
-            print('DEBUG: Cover page selected - template: ${coverPage!.template}, showCoverInPreview: $showCoverInPreview');
+            // Cover page selected - template: ${coverPage!.template}, showCoverInPreview: $showCoverInPreview
           } else {
             showCoverInPreview = false;
-            print('DEBUG: Cover page cleared - showCoverInPreview: $showCoverInPreview');
+            // Cover page cleared - showCoverInPreview: $showCoverInPreview
           }
         });
       },
@@ -2303,7 +2303,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                   
                   // 겉표지가 있고 미리보기 표시 옵션이 켜져있으면 겉표지 보여주기
                   if (coverPage != null && coverPage!.template != 'none' && showCoverInPreview) {
-                    print('DEBUG: Rendering cover page - template: ${coverPage!.template}');
+                    // Rendering cover page - template: ${coverPage!.template}
                     return SizedBox(
                       height: constraints.maxHeight,
                       child: Stack(
@@ -3378,7 +3378,8 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           context: tempContext,
         );
         
-        if (coverBytes != null) {
+        // coverBytes is always non-null after successful capture
+        {
           if (kIsWeb) {
             savedCount++;
           } else {
@@ -3411,7 +3412,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       }
       
       for (int pageIndex = 0; pageIndex < pages.length; pageIndex++) {
-        print('이미지 저장: 페이지 ${pageIndex + 1}/${pages.length} 처리 시작');
+        // 이미지 저장: 페이지 ${pageIndex + 1}/${pages.length} 처리 시작
         
         // 페이지 로드 및 상태 업데이트
         setState(() {
@@ -3424,14 +3425,14 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         
         // 스크린샷 캡처 (고해상도)
         try {
-          print('이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 시도');
+          // 이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 시도
           final Uint8List? imageBytes = await _screenshotController.capture(
             delay: const Duration(milliseconds: 200),
             pixelRatio: 3.0, // 고해상도 캡처
           );
           
           if (imageBytes != null) {
-            print('이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 성공 (${imageBytes.length} bytes)');
+            // 이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 성공 (${imageBytes.length} bytes)
             
             if (kIsWeb) {
               // 웹에서는 기존 방식 유지
@@ -3445,7 +3446,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 );
                 
                 savedCount++;
-                print('이미지 저장: 페이지 ${pageIndex + 1} 갤러리 저장 완료');
+                // 이미지 저장: 페이지 ${pageIndex + 1} 갤러리 저장 완료
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -3455,7 +3456,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                   );
                 }
               } catch (saveError) {
-                print('이미지 저장: 페이지 ${pageIndex + 1} 갤러리 저장 실패: $saveError');
+                // 이미지 저장: 페이지 ${pageIndex + 1} 갤러리 저장 실패: $saveError
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -3467,10 +3468,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
               }
             }
           } else {
-            print('이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 실패 - imageBytes가 null');
+            // 이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 실패 - imageBytes가 null
           }
         } catch (captureError) {
-          print('이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 중 오류: $captureError');
+          // 이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 중 오류: $captureError
         }
         
         // 다음 페이지 처리 전 짧은 대기
@@ -3480,7 +3481,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       }
       
       // 원래 상태로 복원
-      print('이미지 저장: 원래 페이지 ${originalCurrentPageIndex + 1}로 복원');
+      // 이미지 저장: 원래 페이지 ${originalCurrentPageIndex + 1}로 복원
       setState(() {
         currentPageIndex = originalCurrentPageIndex;
         showCoverInPreview = originalShowCoverInPreview;
@@ -3499,7 +3500,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       }
     } catch (e) {
       // 오류 발생 시에도 원래 상태로 복원
-      print('이미지 저장: 오류 발생, 원래 페이지 ${originalCurrentPageIndex + 1}로 복원');
+      // 이미지 저장: 오류 발생, 원래 페이지 ${originalCurrentPageIndex + 1}로 복원
       setState(() {
         currentPageIndex = originalCurrentPageIndex;
         showCoverInPreview = originalShowCoverInPreview;
@@ -3562,7 +3563,8 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           context: tempContext,
         );
         
-        if (coverBytes != null) {
+        // coverBytes is always non-null after successful capture
+        {
           final coverImage = pw.MemoryImage(coverBytes);
           pdf.addPage(
             pw.Page(

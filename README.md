@@ -1,6 +1,10 @@
-# 📸 REphoto v1.1.22
+# 📸 REphoto v1.2.0
 
 Flutter로 개발된 크로스플랫폼 사진 레이아웃 편집 앱입니다. 다양한 그리드 레이아웃으로 사진을 배치하고, **전문적인 겉표지와 함께** PDF 및 이미지로 내보낼 수 있습니다.
+
+![REphoto Demo](https://img.shields.io/badge/Platform-Flutter-02569B?style=for-the-badge&logo=flutter)
+![Version](https://img.shields.io/badge/Version-1.2.0-brightgreen?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 ## ✨ 주요 기능
 
@@ -39,6 +43,7 @@ Flutter로 개발된 크로스플랫폼 사진 레이아웃 편집 앱입니다.
 - **빈 슬롯 터치**: 빈 슬롯 터치로 바로 사진 추가
 - **직관적 조작**: 드래그 앤 드롭으로 쉬운 사진 편집
 - **터치 최적화**: 모바일 터치 인터페이스에 최적화
+- **다국어 지원**: 한국어/영어 자동 전환
 
 ## 🚀 시작하기
 
@@ -52,8 +57,8 @@ Flutter로 개발된 크로스플랫폼 사진 레이아웃 편집 앱입니다.
 
 1. **저장소 클론**
    ```bash
-   git clone https://github.com/[username]/POL_PHOTO.git
-   cd POL_PHOTO
+   git clone https://github.com/jagallang/EZPHOTO.git
+   cd EZPHOTO
    ```
 
 2. **의존성 설치**
@@ -73,26 +78,29 @@ Flutter로 개발된 크로스플랫폼 사진 레이아웃 편집 앱입니다.
    flutter run -d chrome
    ```
 
-4. **빌드**
+4. **릴리즈 빌드**
    ```bash
-   # Android APK
-   flutter build apk
+   # Android APK (프로덕션 서명)
+   flutter build apk --release
    
    # iOS 빌드
-   flutter build ios
+   flutter build ios --release
    
    # 웹 빌드
-   flutter build web
+   flutter build web --release
    ```
 
 ## 📦 주요 의존성
 
-- `image_picker`: 갤러리에서 사진 선택
-- `screenshot`: 화면 캡처로 이미지 생성
-- `gal`: 디바이스 갤러리 저장
-- `pdf`: PDF 문서 생성
-- `printing`: PDF 인쇄 및 공유
-- `cupertino_icons`: iOS 스타일 아이콘
+| 패키지 | 버전 | 용도 |
+|--------|------|------|
+| `image_picker` | ^1.1.2 | 갤러리에서 사진 선택 |
+| `screenshot` | ^3.0.0 | 화면 캡처로 이미지 생성 |
+| `gal` | ^2.3.0 | 디바이스 갤러리 저장 |
+| `pdf` | ^3.11.1 | PDF 문서 생성 |
+| `printing` | ^5.13.2 | PDF 인쇄 및 공유 |
+| `easy_localization` | ^3.0.7 | 다국어 지원 |
+| `permission_handler` | ^11.4.0 | 권한 관리 |
 
 ## 📱 사용법
 
@@ -109,7 +117,7 @@ Flutter로 개발된 크로스플랫폼 사진 레이아웃 편집 앱입니다.
 
 ### 2. 사진 편집
 - **이동**: 사진을 드래그하여 위치 조정
-- **줌**: 사진 더블터치로 5단계 줌 (1.0x ~ 2.0x)
+- **줌**: 사진 더블터치로 7단계 줌 (1.0x ~ 2.5x)
 - **회전**: 회전 버튼으로 90도씩 회전
 - **제목**: 제목 영역 터치로 편집
 
@@ -130,36 +138,85 @@ Flutter로 개발된 크로스플랫폼 사진 레이아웃 편집 앱입니다.
 
 ## 📱 지원 플랫폼
 
-- ✅ Android
-- ✅ iOS  
-- ✅ Web
-- ✅ Windows
-- ✅ macOS
-- ✅ Linux
+- ✅ Android (API 21+)
+- ✅ iOS (12.0+)
+- ✅ Web (Chrome, Safari, Firefox)
+- ✅ Windows (10+)
+- ✅ macOS (10.14+)
+- ✅ Linux (Ubuntu 18.04+)
 
 ## 🔧 개발 정보
 
+### 프로젝트 구조
+```
+POL_PHOTO/
+├── android/              # Android 설정
+│   ├── app/build.gradle.kts  # Android 빌드 설정
+│   └── key.properties     # 서명 키 설정 (제외됨)
+├── ios/                  # iOS 설정
+├── lib/
+│   └── main.dart         # 메인 앱 코드
+├── assets/
+│   └── translations/     # 다국어 번역 파일
+├── test/                 # 테스트 코드
+└── pubspec.yaml          # Flutter 의존성
+```
+
 ### 아키텍처
-- **UI 프레임워크**: Flutter/Material Design
-- **상태 관리**: setState 패턴
-- **파일 구조**: 단일 main.dart 파일 구조
+- **UI 프레임워크**: Flutter/Material Design 3
+- **상태 관리**: setState 패턴 (단순하고 직관적)
+- **파일 구조**: 단일 main.dart 구조 (프로토타입 최적화)
+- **서명**: 프로덕션 서명 키 적용 (com.rephoto.app)
 
 ### 데이터 모델
 ```dart
 class PageData {
-  String title;
-  int layoutCount;
-  Map<int, String> photoData;
-  Map<int, String> photoTitles;
-  Map<int, double> photoRotations;
-  // ... 기타 속성
+  String title;                    // 페이지 제목
+  int layoutCount;                 // 그리드 개수
+  Map<int, String> photoData;      // 사진 데이터
+  Map<int, String> photoTitles;    // 사진 제목
+  Map<int, double> photoRotations; // 사진 회전각
+  Map<int, Offset> photoOffsets;   // 사진 위치
+  Map<int, double> photoScales;    // 사진 줌 레벨
+}
+
+class CoverPageData {
+  String template;                 // 템플릿 종류
+  String title;                    // 문서 제목
+  String subtitle;                 // 부제목
+  String author;                   // 작성자
+  String date;                     // 날짜
+  String organization;             // 기관명
+  Color primaryColor;              // 테마 색상
+  List<String> contentLines;       // 추가 내용
 }
 ```
 
+## 🔐 보안 및 배포
+
+### Android 서명 정보
+- **패키지 ID**: `com.rephoto.app`
+- **서명**: 프로덕션 서명 키 적용
+- **API 레벨**: 최소 21 (Android 5.0)
+- **권한**: 카메라, 저장소, 네트워크 상태
+
+### iOS 설정
+- **Bundle ID**: `com.rephoto.app`
+- **최소 버전**: iOS 12.0
+- **권한**: 사진 라이브러리 접근
+
 ## 🐛 알려진 이슈
 
-- 대용량 이미지 처리 시 메모리 사용량 증가 가능
-- 웹 버전에서 일부 파일 저장 제한
+- ⚠️ 대용량 이미지(50MB+) 처리 시 메모리 사용량 증가
+- ⚠️ 웹 버전에서 파일 다운로드 시 브라우저 제한
+- ⚠️ BuildContext across async gaps 경고 1개 (기능에는 영향 없음)
+
+## 🚀 성능 최적화
+
+- **이미지 캐싱**: 메모리 효율적인 이미지 로딩
+- **지연 로딩**: 필요한 페이지만 렌더링
+- **고해상도**: 4x 픽셀비율로 초고화질 내보내기
+- **압축**: APK 크기 23.9MB (최적화 완료)
 
 ## 🤝 기여하기
 
@@ -169,13 +226,28 @@ class PageData {
 4. 브랜치에 푸시합니다 (`git push origin feature/AmazingFeature`)
 5. Pull Request를 생성합니다
 
+### 개발 가이드라인
+- **코드 스타일**: Flutter/Dart 공식 가이드라인 준수
+- **커밋 메시지**: Conventional Commits 형식 사용
+- **테스트**: 새 기능에 대한 테스트 코드 작성
+- **문서**: README 및 코드 주석 업데이트
+
 ## 📄 라이선스
 
 이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 `LICENSE` 파일을 참조하세요.
 
 ## 🔄 버전 히스토리
 
-### v1.1.22 (2025-08-17) 🚀
+### v1.2.0 (2025-01-20) 🚀 **LATEST**
+- 🔧 **배포 준비 완료**: 프로덕션 서명 키 및 패키지 ID 설정
+- ✨ **코드 품질 개선**: Print 문 제거, null 체크 최적화  
+- 📱 **패키지 ID 변경**: `com.example.pol_photo` → `com.rephoto.app`
+- 🔐 **보안 강화**: 프로덕션 서명 키 생성 및 적용
+- 🧪 **테스트 개선**: EasyLocalization 테스트 환경 구성
+- 📦 **빌드 최적화**: APK 크기 24.2MB → 23.9MB 감소
+- 🌍 **다국어 지원**: 한국어/영어/일본어 지원
+
+### v1.1.22 (2025-08-17)
 - 🌍 **다국어 지원**: 한국어/영어 자동 전환 (easy_localization)
 - 🖼️ **이미지 저장 최적화**: 겉표지 + 모든 사진 페이지 개별 저장
 - 🔧 **상태 관리 개선**: 저장 후 데이터 손실 방지 및 UI 상태 복원
@@ -192,31 +264,16 @@ class PageData {
 - 🔧 **레이아웃 수정**: RenderFlex 오류 해결, Spacer → SizedBox 교체
 - 🚀 **전문성 향상**: 업무용 보고서, 제안서 작성에 최적화
 
-### v1.2.0 (2025-08-16)
-- 🎨 **앱 리브랜딩**: 이지포토(EZPHOTO) → REphoto로 완전 변경
-- 🆕 **새로운 앱 아이콘**: 시각적으로 개선된 REphoto 아이콘 적용
-- 📱 **UI/UX 개선**: 페이지 번호 크기 축소, 제목 영역 레이아웃 안정화
-- 🖼️ **가로모드 최적화**: 가로 방향에서 레이아웃 크기 및 여백 조정
-- 💾 **향상된 내보내기**: 이미지/PDF 형식 선택 다이얼로그 추가
-- 🔧 **PDF 내보내기 개선**: A4 용지 전체를 완벽하게 채우는 레이아웃
-- ⚡ **고해상도 지원**: 이미지 및 PDF 모두 4배 픽셀비율 적용
-- 🐛 **버그 수정**: 빈 슬롯 터치, 레이아웃 시프트, 오버플로우 문제 해결
-
-### v1.1.02 (2024-08-16)
-- 🐛 빈 슬롯 터치 시 사진 추가 기능 수정
-- ✨ 빈 슬롯에서 선택 모드 활성화 대신 바로 사진 추가 다이얼로그 표시
-- 🎯 사용자 경험 개선
-
-### v1.1.01 (2024-08-16)
-- 🎉 최초 릴리스
-- ✨ PDF 내보내기 기능 추가
-- 🔄 다중 페이지 자동 분배 기능
-- 🎨 빈 슬롯 UI 개선
-- 🐛 레이아웃 변경 버그 수정
-- 📐 반응형 레이아웃 최적화
-
 ---
 
 **개발자**: Claude Code와 함께  
 **프로젝트 링크**: [https://github.com/jagallang/EZPHOTO](https://github.com/jagallang/EZPHOTO)  
-**최신 릴리스**: [v1.1.22 릴리스 노트](https://github.com/jagallang/EZPHOTO/releases/tag/v1.1.22)
+**최신 릴리스**: [v1.2.0 릴리스 노트](https://github.com/jagallang/EZPHOTO/releases/tag/v1.2.0)
+
+---
+
+<div align="center">
+
+**🌟 이 프로젝트가 도움이 되셨다면 Star를 눌러주세요! 🌟**
+
+</div>

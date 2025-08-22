@@ -536,55 +536,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('💾 이미지 다운로드'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('파일명: $filename'),
-              const SizedBox(height: 16),
-              const Text('다운로드 위치:', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              const Text('📁 브라우저 기본 다운로드 폴더'),
-              const Text('   (일반적으로 Downloads 폴더)', 
-                style: TextStyle(fontSize: 12, color: Colors.grey)),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.info_outline, size: 16, color: Colors.blue),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '웹에서는 브라우저 설정에 따라 다운로드 폴더가 결정됩니다.',
-                        style: TextStyle(fontSize: 12, color: Colors.blue),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('취소'),
-            ),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _performWebDownload(bytes, filename);
-              },
-              icon: const Icon(Icons.download),
-              label: const Text('다운로드'),
-            ),
-          ],
+        return WebDownloadDialog(
+          bytes: bytes,
+          initialFilename: filename,
+          onDownload: _performWebDownload,
         );
       },
     );
@@ -4974,6 +4929,158 @@ class CoverPageWidget extends StatelessWidget {
           style: TextStyle(
             color: Colors.grey[500],
             fontSize: isForExport ? 16 : 14,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// 웹 다운로드 모달 다이얼로그
+class WebDownloadDialog extends StatefulWidget {
+  final Uint8List bytes;
+  final String initialFilename;
+  final Function(Uint8List, String) onDownload;
+
+  const WebDownloadDialog({
+    super.key,
+    required this.bytes,
+    required this.initialFilename,
+    required this.onDownload,
+  });
+
+  @override
+  State<WebDownloadDialog> createState() => _WebDownloadDialogState();
+}
+
+class _WebDownloadDialogState extends State<WebDownloadDialog> {
+  late TextEditingController _filenameController;
+  late FocusNode _filenameFocusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    // 초기 파일명에서 확장자 제거
+    final nameWithoutExtension = widget.initialFilename.replaceAll('.png', '');
+    _filenameController = TextEditingController(text: nameWithoutExtension);
+    _filenameFocusNode = FocusNode();
+    
+    // 텍스트 전체 선택
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _filenameFocusNode.requestFocus();
+      _filenameController.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _filenameController.text.length,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _filenameController.dispose();
+    _filenameFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _handleDownload() {
+    String filename = _filenameController.text.trim();
+    if (filename.isEmpty) {
+      filename = 'REphoto_Image';
+    }
+    
+    // .png 확장자가 없으면 추가
+    if (!filename.toLowerCase().endsWith('.png')) {
+      filename = '$filename.png';
+    }
+    
+    Navigator.of(context).pop();
+    widget.onDownload(widget.bytes, filename);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Row(
+        children: [
+          Icon(Icons.download, color: Colors.blue),
+          SizedBox(width: 8),
+          Text('💾 이미지 다운로드'),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '파일명을 입력하세요:',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _filenameController,
+            focusNode: _filenameFocusNode,
+            decoration: InputDecoration(
+              hintText: 'REphoto_Image',
+              suffixText: '.png',
+              suffixStyle: TextStyle(color: Colors.grey[600]),
+              border: const OutlineInputBorder(),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
+            ),
+            onSubmitted: (_) => _handleDownload(),
+            textInputAction: TextInputAction.done,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            '다운로드 위치:',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            '📁 브라우저 기본 다운로드 폴더',
+            style: TextStyle(fontSize: 13),
+          ),
+          const Text(
+            '   (일반적으로 Downloads 폴더)',
+            style: TextStyle(fontSize: 11, color: Colors.grey),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.keyboard, size: 16, color: Colors.green),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Enter 키를 누르면 바로 다운로드됩니다',
+                    style: TextStyle(fontSize: 12, color: Colors.green),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('취소'),
+        ),
+        ElevatedButton.icon(
+          onPressed: _handleDownload,
+          icon: const Icon(Icons.download),
+          label: const Text('다운로드'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
           ),
         ),
       ],

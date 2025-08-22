@@ -964,7 +964,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
 
   void _zoomPhoto(int index) {
     final currentLevel = photoZoomLevels[index] ?? 0;
-    if (currentLevel < 7) {
+    if (currentLevel < 10) {
       photoZoomLevels[index] = currentLevel + 1;
     } else {
       photoZoomLevels[index] = 0;
@@ -975,9 +975,9 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     // 매우 짧은 피드백만 제공
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(currentLevel < 7 
-            ? '${currentLevel + 1}단계 확대' 
-            : '원본 크기'),
+        content: Text(currentLevel < 10 
+            ? '${currentLevel + 1}단계 확대 (${_getScaleFromZoomLevel(currentLevel + 1).toStringAsFixed(1)}x)' 
+            : '원본 크기 (1.0x)'),
         duration: const Duration(milliseconds: 200),
       ),
     );
@@ -992,7 +992,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       case 4: return 1.8;   // 4단계
       case 5: return 2.0;   // 5단계
       case 6: return 2.2;   // 6단계
-      case 7: return 2.5;   // 7단계 (최대 확대)
+      case 7: return 2.4;   // 7단계
+      case 8: return 2.6;   // 8단계
+      case 9: return 2.8;   // 9단계
+      case 10: return 3.0;  // 10단계 (최대 확대)
       default: return 1.0;
     }
   }
@@ -2684,7 +2687,9 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
               ),
               _buildNavButton(
                 icon: Icons.zoom_in,
-                label: '확대',
+                label: selectedSlot != null && photoZoomLevels[selectedSlot!] != null && photoZoomLevels[selectedSlot!]! > 0
+                    ? '확대 ${photoZoomLevels[selectedSlot!]}/10'
+                    : '확대',
                 onTap: () {
                   if (selectedSlot != null && photoData.containsKey(selectedSlot)) {
                     _zoomPhoto(selectedSlot!);
@@ -3057,7 +3062,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    '확대 $zoomLevel단계',
+                    '확대 $zoomLevel단계 (${scale.toStringAsFixed(1)}x)',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 10,

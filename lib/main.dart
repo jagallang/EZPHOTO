@@ -10,7 +10,10 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:web/web.dart' as web;
+
+// Conditional import for web/mobile
+import 'web_helper.dart' if (dart.library.io) 'mobile_helper.dart' as platform_helper;
+import 'settings_screen.dart';
 
 class LocalGradientImage extends StatelessWidget {
   final String imageId;
@@ -548,18 +551,8 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
   // 실제 웹 다운로드 수행
   void _performWebDownload(Uint8List bytes, String filename) {
     try {
-      // base64로 인코딩하여 다운로드
-      final base64 = base64Encode(bytes);
-      final dataUrl = 'data:image/png;base64,$base64';
-      
-      final anchor = web.document.createElement('a') as web.HTMLAnchorElement;
-      anchor.href = dataUrl;
-      anchor.download = filename;
-      anchor.style.display = 'none';
-      
-      web.document.body!.appendChild(anchor);
-      anchor.click();
-      web.document.body!.removeChild(anchor);
+      // 플랫폼별 헬퍼 함수 사용
+      platform_helper.downloadImageOnWeb(bytes, filename);
       
       // 다운로드 완료 메시지
       if (mounted) {
@@ -1987,58 +1980,90 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                   ),
                   
                   // 오른쪽: 기능 버튼들 (배경 제거, 깔끔한 디자인)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          minimumSize: const Size(40, 40),
-                        ),
-                        onPressed: () {
-                          _showMultiPhotoAddDialog();
-                        },
-                        child: const Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.add_a_photo, color: Colors.white, size: 20),
-                            SizedBox(height: 2),
-                            Text(
-                              '추가',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 10,
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                            minimumSize: const Size(36, 36),
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SettingsScreen(),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          minimumSize: const Size(40, 40),
-                        ),
-                        onPressed: () {
-                          _showSaveConfirmationDialog();
-                        },
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.save, color: Colors.white, size: 20),
-                            const SizedBox(height: 2),
-                            Text(
-                              'save'.tr(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 10,
+                            );
+                          },
+                          child: const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.settings, color: Colors.white, size: 18),
+                              SizedBox(height: 1),
+                              Text(
+                                '설정',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 9,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                            minimumSize: const Size(36, 36),
+                          ),
+                          onPressed: () {
+                            _showMultiPhotoAddDialog();
+                          },
+                          child: const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.add_a_photo, color: Colors.white, size: 18),
+                              SizedBox(height: 1),
+                              Text(
+                                '추가',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 9,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                            minimumSize: const Size(36, 36),
+                          ),
+                          onPressed: () {
+                            _showSaveConfirmationDialog();
+                          },
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.save, color: Colors.white, size: 18),
+                              const SizedBox(height: 1),
+                              Text(
+                                'save'.tr(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 9,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -2051,11 +2076,13 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           Container(
             color: Colors.grey[200],
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: Row(
-              children: [
-                // 1. 방향
-                const Text('방향:', style: TextStyle(fontSize: 12)),
-                const SizedBox(width: 4),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  // 1. 방향
+                  const Text('방향:', style: TextStyle(fontSize: 12)),
+                  const SizedBox(width: 4),
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
@@ -2279,6 +2306,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 ),
               ],
             ),
+          ),
           ),
           Expanded(
             child: Center(
@@ -3440,11 +3468,9 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         );
         
         // 겉표지를 이미지로 캡처
-        final tempContext = context;
         final coverBytes = await ScreenshotController().captureFromWidget(
           coverWidget,
           pixelRatio: 4.0,
-          context: tempContext,
         );
         
         // coverBytes is always non-null after successful capture
@@ -3637,11 +3663,9 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         );
         
         // 겉표지를 이미지로 캡처
-        final tempContext = context;
         final coverBytes = await ScreenshotController().captureFromWidget(
           coverWidget,
           pixelRatio: 4.0,
-          context: tempContext,
         );
         
         // coverBytes is always non-null after successful capture

@@ -37,5 +37,10 @@
   "template_document": "문서",
   "template_quotation": "견적서",
   "template_photo_text": "사진+텍스트",
-  "template_text_only": "텍스트전용"
+  "template_text_only": "텍스트전용",
+  "sample_nature": "자연 풍경",
+  "sample_city_night": "도시 야경",
+  "sample_ocean_view": "바다 전망",
+  "sample_food": "음식 사진",
+  "sample_image": "샘플 이미지"
 }

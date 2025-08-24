@@ -13,7 +13,6 @@ import 'package:easy_localization/easy_localization.dart';
 
 // Conditional import for web/mobile
 import 'web_helper.dart' if (dart.library.io) 'mobile_helper.dart' as platform_helper;
-import 'settings_screen.dart';
 
 class LocalGradientImage extends StatelessWidget {
   final String imageId;
@@ -44,25 +43,25 @@ class LocalGradientImage extends StatelessWidget {
     }
   }
 
-  String _getImageText(String id) {
+  String _getImageText(String id, BuildContext context) {
     switch (id) {
       case 'local_gradient_1':
-        return '자연 풍경';
+        return 'sample_nature'.tr();
       case 'local_gradient_2':
-        return '도시 야경';
+        return 'sample_city_night'.tr();
       case 'local_gradient_3':
-        return '바다 전망';
+        return 'sample_ocean_view'.tr();
       case 'local_gradient_4':
-        return '음식 사진';
+        return 'sample_food'.tr();
       default:
-        return '샘플 이미지';
+        return 'sample_image'.tr();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = _getGradientColors(imageId);
-    final text = _getImageText(imageId);
+    final text = _getImageText(imageId, context);
 
     return Container(
       width: width,
@@ -1904,6 +1903,403 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     _loadPageData(0);
   }
 
+  // 햄버거 메뉴 표시
+  void _showHamburgerMenu() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        minChildSize: 0.3,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            children: [
+              // 드래그 핸들
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // 헤더
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF2196F3), Color(0xFF1976D2)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'REphoto',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '사진을 예술로 만드는 앱',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 메뉴 아이템들
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    _buildMenuTile(
+                      icon: Icons.privacy_tip_outlined,
+                      title: '개인정보처리방침',
+                      subtitle: '개인정보 보호 정책 확인',
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showPrivacyPolicy();
+                      },
+                    ),
+                    const Divider(),
+                    _buildMenuTile(
+                      icon: Icons.info_outline,
+                      title: '앱 정보',
+                      subtitle: '버전 및 개발자 정보',
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showAppInfo();
+                      },
+                    ),
+                    const Divider(),
+                    _buildMenuTile(
+                      icon: Icons.info_outline,
+                      title: '앱 정보',
+                      subtitle: 'REphoto v1.2.07',
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showAboutDialog();
+                      },
+                    ),
+                    const Divider(),
+                    _buildMenuTile(
+                      icon: Icons.help_outline,
+                      title: '도움말',
+                      subtitle: '앱 사용법 및 FAQ',
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showHelpDialog();
+                      },
+                    ),
+                    const Divider(),
+                    _buildMenuTile(
+                      icon: Icons.feedback_outlined,
+                      title: '피드백',
+                      subtitle: '의견 및 개선사항 제안',
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showFeedbackDialog();
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    // 앱 정보 푸터
+                    Center(
+                      child: Column(
+                        children: [
+                          Text(
+                            '© 2024 REphoto',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Made with ❤️',
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2196F3).withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          icon,
+          size: 20,
+          color: const Color(0xFF1976D2),
+        ),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          fontSize: 14,
+          color: Colors.grey[600],
+        ),
+      ),
+      trailing: Icon(
+        Icons.chevron_right,
+        color: Colors.grey[400],
+      ),
+      onTap: onTap,
+    );
+  }
+
+  void _showAboutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('REphoto 정보'),
+        content: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('버전: 1.2.07'),
+              SizedBox(height: 8),
+              Text('사진을 예술로 만드는 폴라로이드 프레임 앱'),
+              SizedBox(height: 16),
+              Text('기능:'),
+              Text('• 사진에 폴라로이드 프레임 추가'),
+              Text('• 다양한 레이아웃 제공'),
+              Text('• 사진 확대/축소/회전'),
+              Text('• PDF 생성 및 공유'),
+              Text('• 고품질 이미지 저장'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showHelpDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('도움말'),
+        content: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '사용법:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text('1. 빈 슬롯을 터치하여 사진 선택'),
+              Text('2. 사진을 터치하여 확대/축소/회전'),
+              Text('3. 제목을 터치하여 편집'),
+              Text('4. 저장 버튼을 눌러 갤러리에 저장'),
+              SizedBox(height: 16),
+              Text(
+                'FAQ:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text('Q: 사진이 저장되지 않아요'),
+              Text('A: 저장소 권한을 확인해 주세요'),
+              SizedBox(height: 8),
+              Text('Q: 사진 품질이 낮아요'),
+              Text('A: 설정에서 저장 품질을 높음으로 변경하세요'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFeedbackDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('피드백'),
+        content: const Text('Google Play 스토어의 REphoto 앱 페이지에서 리뷰를 남겨주세요.\n\n여러분의 소중한 의견이 앱 개선에 큰 도움이 됩니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPrivacyPolicy() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('개인정보처리방침'),
+        content: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'REphoto 개인정보처리방침',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              SizedBox(height: 16),
+              Text('1. 개인정보의 처리목적'),
+              Text('REphoto 앱은 사용자의 사진 편집 및 저장 기능을 제공하기 위해 최소한의 권한만을 요청합니다.'),
+              SizedBox(height: 12),
+              Text('2. 개인정보의 처리 및 보유기간'),
+              Text('REphoto는 사용자의 개인정보를 수집하지 않습니다. 모든 사진 편집은 기기 내에서만 이루어집니다.'),
+              SizedBox(height: 12),
+              Text('3. 개인정보의 제3자 제공'),
+              Text('REphoto는 사용자의 개인정보를 제3자에게 제공하지 않습니다.'),
+              SizedBox(height: 12),
+              Text('4. 개인정보처리의 위탁'),
+              Text('REphoto는 개인정보 처리를 위탁하지 않습니다.'),
+              SizedBox(height: 12),
+              Text('5. 정보주체의 권리·의무 및 행사방법'),
+              Text('사용자는 언제든지 앱을 삭제하여 모든 데이터를 제거할 수 있습니다.'),
+              SizedBox(height: 12),
+              Text('6. 개인정보의 안전성 확보조치'),
+              Text('모든 데이터는 사용자의 기기에만 저장되며, 외부로 전송되지 않습니다.'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAppInfo() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('앱 정보'),
+        content: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'REphoto',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              SizedBox(height: 8),
+              Text('버전: 1.2.07'),
+              Text('빌드: 7'),
+              SizedBox(height: 16),
+              Text('사진을 예술로 만드는 폴라로이드 프레임 앱'),
+              SizedBox(height: 16),
+              Text(
+                '주요 기능:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              Text('• 다양한 폴라로이드 프레임 제공'),
+              Text('• 10단계 확대/축소 기능'),
+              Text('• 사진 회전 및 배치 조정'),
+              Text('• 고품질 이미지 저장'),
+              Text('• PDF 문서 생성'),
+              Text('• 웹 버전 지원'),
+              SizedBox(height: 16),
+              Text(
+                '개발자: REphoto Team',
+                style: TextStyle(fontStyle: FontStyle.italic),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1923,147 +2319,104 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Row(
                 children: [
-                  // 왼쪽: 앱 이름 (모바일에 맞게 축소)
-                  const Text(
-                    '📸 REphoto',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      letterSpacing: 0.8,
+                  // 왼쪽: 햄버거 메뉴 (웹에서는 숨김)
+                  if (!kIsWeb)
+                    IconButton(
+                      icon: const Icon(Icons.menu, color: Colors.white, size: 24),
+                      onPressed: () {
+                        _showHamburgerMenu();
+                      },
                     ),
-                  ),
-                  
-                  // 중앙: 페이지 네비게이션
-                  Expanded(
-                    child: Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            padding: const EdgeInsets.all(8),
-                            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                            icon: const Icon(Icons.chevron_left, color: Colors.white, size: 24),
-                            onPressed: currentPageIndex > 0 ? () {
-                              _saveCurrentPageData();
-                              _loadPageData(currentPageIndex - 1);
-                            } : null,
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              '${currentPageIndex + 1}/${pages.length}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            padding: const EdgeInsets.all(8),
-                            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                            icon: const Icon(Icons.chevron_right, color: Colors.white, size: 24),
-                            onPressed: currentPageIndex < pages.length - 1 ? () {
-                              _saveCurrentPageData();
-                              _loadPageData(currentPageIndex + 1);
-                            } : null,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  
-                  // 오른쪽: 기능 버튼들 (배경 제거, 깔끔한 디자인)
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                  // 앱 이름 (웹에서는 햄버거 메뉴 포함한 왼쪽 정렬, 모바일에서는 텍스트만)
+                  if (kIsWeb) 
+                    Row(
                       children: [
-                        TextButton(
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                            minimumSize: const Size(36, 36),
-                          ),
+                        IconButton(
+                          icon: const Icon(Icons.menu, color: Colors.white, size: 24),
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SettingsScreen(),
-                              ),
-                            );
+                            _showHamburgerMenu();
                           },
-                          child: const Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.settings, color: Colors.white, size: 18),
-                              SizedBox(height: 1),
-                              Text(
-                                '설정',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 9,
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                            minimumSize: const Size(36, 36),
-                          ),
-                          onPressed: () {
-                            _showMultiPhotoAddDialog();
-                          },
-                          child: const Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.add_a_photo, color: Colors.white, size: 18),
-                              SizedBox(height: 1),
-                              Text(
-                                '추가',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 9,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        TextButton(
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                            minimumSize: const Size(36, 36),
-                          ),
-                          onPressed: () {
-                            _showSaveConfirmationDialog();
-                          },
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.save, color: Colors.white, size: 18),
-                              const SizedBox(height: 1),
-                              Text(
-                                'save'.tr(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 9,
-                                ),
-                              ),
-                            ],
+                        const Text(
+                          'REphoto',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            letterSpacing: 1.0,
                           ),
                         ),
                       ],
                     ),
+                  
+                  // 모바일에서만 REphoto 텍스트 표시 (웹에서는 위의 Row에 포함됨)
+                  if (!kIsWeb)
+                    const Text(
+                      'REphoto',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  
+                  // 공간을 채워서 버튼들을 우측으로 밀어내기
+                  const Spacer(),
+                  
+                  // 오른쪽: 기능 버튼들
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          minimumSize: const Size(40, 40),
+                        ),
+                        onPressed: () {
+                          _showMultiPhotoAddDialog();
+                        },
+                        child: const Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add_a_photo, color: Colors.white, size: 20),
+                            SizedBox(height: 2),
+                            Text(
+                              '추가',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          minimumSize: const Size(40, 40),
+                        ),
+                        onPressed: () {
+                          _showSaveConfirmationDialog();
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.save, color: Colors.white, size: 20),
+                            const SizedBox(height: 2),
+                            Text(
+                              'save'.tr(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -2309,9 +2662,12 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           ),
           ),
           Expanded(
-            child: Center(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
                   // 화면 크기에 완전히 반응하는 동적 계산
                   final screenWidth = constraints.maxWidth;
                   final screenHeight = constraints.maxHeight;
@@ -2668,11 +3024,79 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                       ),
                     ),
                   ],
-                );
-                },
+                  );
+                  },
+                ),
               ),
             ),
-          ),
+            // 페이지 네비게이션 - 미리보기 하단
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                border: Border(
+                  top: BorderSide(color: Colors.grey[300]!, width: 1),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    padding: const EdgeInsets.all(8),
+                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                    icon: Icon(
+                      Icons.chevron_left, 
+                      color: currentPageIndex > 0 ? Colors.blue : Colors.grey[400],
+                      size: 28,
+                    ),
+                    onPressed: currentPageIndex > 0 ? () {
+                      _saveCurrentPageData();
+                      _loadPageData(currentPageIndex - 1);
+                    } : null,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withValues(alpha: 0.3),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      '${currentPageIndex + 1} / ${pages.length}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    padding: const EdgeInsets.all(8),
+                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                    icon: Icon(
+                      Icons.chevron_right,
+                      color: currentPageIndex < pages.length - 1 ? Colors.blue : Colors.grey[400],
+                      size: 28,
+                    ),
+                    onPressed: currentPageIndex < pages.length - 1 ? () {
+                      _saveCurrentPageData();
+                      _loadPageData(currentPageIndex + 1);
+                    } : null,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
         ],
       ),
       bottomNavigationBar: Container(

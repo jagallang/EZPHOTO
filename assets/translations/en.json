@@ -37,5 +37,10 @@
   "template_document": "Document",
   "template_quotation": "Quotation",
   "template_photo_text": "Photo+Text",
-  "template_text_only": "Text Only"
+  "template_text_only": "Text Only",
+  "sample_nature": "Nature Scene",
+  "sample_city_night": "City Night",
+  "sample_ocean_view": "Ocean View",
+  "sample_food": "Food Photo",
+  "sample_image": "Sample Image"
 }

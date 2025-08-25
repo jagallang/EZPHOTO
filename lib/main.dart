@@ -2327,39 +2327,25 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                         _showHamburgerMenu();
                       },
                     ),
-                  // 앱 이름 (웹에서는 햄버거 메뉴 포함한 왼쪽 정렬, 모바일에서는 텍스트만)
+                  // 웹에서는 햄버거 메뉴 표시
                   if (kIsWeb) 
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.menu, color: Colors.white, size: 24),
-                          onPressed: () {
-                            _showHamburgerMenu();
-                          },
-                        ),
-                        const Text(
-                          'REphoto',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ],
+                    IconButton(
+                      icon: const Icon(Icons.menu, color: Colors.white, size: 24),
+                      onPressed: () {
+                        _showHamburgerMenu();
+                      },
                     ),
                   
-                  // 모바일에서만 REphoto 텍스트 표시 (웹에서는 위의 Row에 포함됨)
-                  if (!kIsWeb)
-                    const Text(
-                      'REphoto',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        letterSpacing: 0.8,
-                      ),
+                  // REphoto 텍스트 (웹과 모바일 모두 표시)
+                  const Text(
+                    'REphoto',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      letterSpacing: 1.0,
                     ),
+                  ),
                   
                   // 공간을 채워서 버튼들을 우측으로 밀어내기
                   const Spacer(),
@@ -3124,13 +3110,15 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           ),
         ),
         child: SafeArea(
-          child: Padding(
+          child: Container(
+            width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-          child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
+            child: kIsWeb 
+              ? Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 4,
+                runSpacing: 4,
+                children: [
               _buildNavButton(
                 icon: Icons.touch_app,
                 label: '선택',
@@ -3239,9 +3227,124 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 },
               ),
             ],
+              )
+              : SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildNavButton(
+                      icon: Icons.touch_app,
+                      label: '선택',
+                      isActive: currentEditMode == 'select',
+                      onTap: () => setEditMode('select'),
+                    ),
+                    _buildNavButton(
+                      icon: Icons.zoom_in,
+                      label: selectedSlot != null && photoZoomLevels[selectedSlot!] != null && photoZoomLevels[selectedSlot!]! > 0
+                          ? '확대 ${photoZoomLevels[selectedSlot!]}/10'
+                          : '확대',
+                      onTap: () {
+                        if (selectedSlot != null && photoData.containsKey(selectedSlot)) {
+                          _zoomPhoto(selectedSlot!);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('확대할 사진을 먼저 선택해주세요'),
+                              duration: Duration(milliseconds: 100),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    _buildNavButton(
+                      icon: Icons.center_focus_strong,
+                      label: '원본',
+                      onTap: () {
+                        if (selectedSlot != null && photoData.containsKey(selectedSlot)) {
+                          _resetPhotoPosition(selectedSlot!);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('사진을 먼저 선택해주세요'),
+                              duration: Duration(milliseconds: 100),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    Container(width: 1, height: 40, color: Colors.grey[300], margin: const EdgeInsets.symmetric(horizontal: 6)),
+                    _buildNavButton(
+                      icon: Icons.circle_outlined,
+                      label: '원',
+                      isActive: currentEditMode == 'circle',
+                      onTap: () => setEditMode('circle'),
+                    ),
+                    _buildNavButton(
+                      icon: Icons.crop_square,
+                      label: '네모',
+                      isActive: currentEditMode == 'rectangle',
+                      onTap: () => setEditMode('rectangle'),
+                    ),
+                    _buildNavButton(
+                      icon: Icons.arrow_upward,
+                      label: '화살',
+                      isActive: currentEditMode == 'arrow',
+                      onTap: () => setEditMode('arrow'),
+                    ),
+                    Container(width: 1, height: 40, color: Colors.grey[300], margin: const EdgeInsets.symmetric(horizontal: 6)),
+                    _buildNavButton(
+                      icon: Icons.rotate_right,
+                      label: '회전',
+                      onTap: () {
+                        if (selectedShapeIndex != null) {
+                          setState(() {
+                            shapes[selectedShapeIndex!].rotation += 90;
+                          });
+                        } else if (selectedSlot != null && photoData.containsKey(selectedSlot)) {
+                          rotatePhoto(selectedSlot!);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('회전할 항목을 먼저 선택해주세요'),
+                              duration: Duration(milliseconds: 100),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    _buildNavButton(
+                      icon: Icons.delete_outline,
+                      label: '삭제',
+                      onTap: () {
+                        if (selectedShapeIndex != null) {
+                          setState(() {
+                            shapes.removeAt(selectedShapeIndex!);
+                            selectedShapeIndex = null;
+                          });
+                        } else if (selectedSlot != null && photoData.containsKey(selectedSlot)) {
+                          removePhoto(selectedSlot!);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('삭제할 항목을 먼저 선택해주세요'),
+                              duration: Duration(milliseconds: 100),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    _buildNavButton(
+                      icon: Icons.refresh,
+                      label: '초기화',
+                      onTap: () {
+                        _showResetDialog();
+                      },
+                    ),
+                  ],
+                ),
+              ),
           ),
-          ),
-        ),
         ),
       ),
     );

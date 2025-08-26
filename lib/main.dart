@@ -4169,11 +4169,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       // 겉표지가 있으면 먼저 저장
       if (coverPage != null && coverPage!.template != 'none') {
         // 겉표지 위젯을 스크린샷으로 캡처
-        final coverWidget = Screenshot(
-          controller: ScreenshotController(),
+        final coverWidget = Material(
           child: SizedBox(
-            width: 595.28 * 2, // A4 width in points * 2 for higher resolution
-            height: 841.89 * 2, // A4 height in points * 2
+            width: 595, // A4 width in points 
+            height: 842, // A4 height in points (595 * 1.414)
             child: CoverPageWidget(
               coverData: coverPage!,
               isForExport: true,
@@ -4181,10 +4180,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           ),
         );
         
-        // 겉표지를 이미지로 캡처
+        // 겉표지를 이미지로 캡처 (A4 비율)
         final coverBytes = await ScreenshotController().captureFromWidget(
           coverWidget,
-          pixelRatio: 4.0,
+          pixelRatio: 3.0, // A4 고해상도 캡처
         );
         
         // coverBytes is always non-null after successful capture
@@ -4242,7 +4241,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           // 이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 시도
           final Uint8List? imageBytes = await _screenshotController.capture(
             delay: const Duration(milliseconds: 200),
-            pixelRatio: 3.0, // 고해상도 캡처
+            pixelRatio: 5.0, // 초고해상도 캡처 (기존 3.0 → 5.0)
           );
           
           if (imageBytes != null) {
@@ -4366,12 +4365,13 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         // 겉표지 위젯을 스크린샷으로 캡처
         final coverWidget = Screenshot(
           controller: ScreenshotController(),
-          child: SizedBox(
-            width: 595.28, // A4 width in points
-            height: 841.89, // A4 height in points
-            child: CoverPageWidget(
-              coverData: coverPage!,
-              isForExport: true,
+          child: IntrinsicHeight( // 자연스러운 높이로 조정
+            child: SizedBox(
+              width: 595.28, // A4 width in points (PDF용)
+              child: CoverPageWidget(
+                coverData: coverPage!,
+                isForExport: true,
+              ),
             ),
           ),
         );
@@ -4379,7 +4379,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         // 겉표지를 이미지로 캡처
         final coverBytes = await ScreenshotController().captureFromWidget(
           coverWidget,
-          pixelRatio: 4.0,
+          pixelRatio: 5.0, // 초고해상도 캡처 (기존 4.0 → 5.0)
         );
         
         // coverBytes is always non-null after successful capture
@@ -4467,7 +4467,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         
         try {
           final Uint8List? imageBytes = await _screenshotController.capture(
-            pixelRatio: 4.0, // 초고해상도 캡처 (PDF용)
+            pixelRatio: 6.0, // 초고해상도 캡처 (PDF용, 기존 4.0 → 6.0)
             delay: const Duration(milliseconds: 50),
           );
           
@@ -5234,6 +5234,7 @@ class CoverPageWidget extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.all(isWeb ? 20 : 16),
         child: Column(
+          mainAxisSize: MainAxisSize.min, // 필요한 공간만 차지하도록 설정
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
               // 헤더부 - 로고와 견적서 타이틀
@@ -5363,9 +5364,7 @@ class CoverPageWidget extends StatelessWidget {
               SizedBox(height: 8),
               
               // 견적 테이블
-              Expanded(
-                child: _buildEstimateTable(),
-              ),
+              _buildEstimateTable(),
               SizedBox(height: 8),
               
               // 총 금액

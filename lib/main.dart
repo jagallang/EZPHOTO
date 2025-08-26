@@ -3300,11 +3300,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-            child: kIsWeb 
-              ? Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 4,
-                runSpacing: 4,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
               _buildNavButton(
                 icon: Icons.touch_app,
@@ -3413,124 +3412,9 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                   _showResetDialog();
                 },
               ),
-            ],
-              )
-              : SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildNavButton(
-                      icon: Icons.touch_app,
-                      label: '선택',
-                      isActive: currentEditMode == 'select',
-                      onTap: () => setEditMode('select'),
-                    ),
-                    _buildNavButton(
-                      icon: Icons.zoom_in,
-                      label: selectedSlot != null && photoZoomLevels[selectedSlot!] != null && photoZoomLevels[selectedSlot!]! > 0
-                          ? '확대 ${photoZoomLevels[selectedSlot!]}/10'
-                          : '확대',
-                      onTap: () {
-                        if (selectedSlot != null && photoData.containsKey(selectedSlot)) {
-                          _zoomPhoto(selectedSlot!);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('확대할 사진을 먼저 선택해주세요'),
-                              duration: Duration(milliseconds: 100),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                    _buildNavButton(
-                      icon: Icons.center_focus_strong,
-                      label: '원본',
-                      onTap: () {
-                        if (selectedSlot != null && photoData.containsKey(selectedSlot)) {
-                          _resetPhotoPosition(selectedSlot!);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('사진을 먼저 선택해주세요'),
-                              duration: Duration(milliseconds: 100),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                    Container(width: 1, height: 40, color: Colors.grey[300], margin: const EdgeInsets.symmetric(horizontal: 6)),
-                    _buildNavButton(
-                      icon: Icons.circle_outlined,
-                      label: '원',
-                      isActive: currentEditMode == 'circle',
-                      onTap: () => setEditMode('circle'),
-                    ),
-                    _buildNavButton(
-                      icon: Icons.crop_square,
-                      label: '네모',
-                      isActive: currentEditMode == 'rectangle',
-                      onTap: () => setEditMode('rectangle'),
-                    ),
-                    _buildNavButton(
-                      icon: Icons.arrow_upward,
-                      label: '화살',
-                      isActive: currentEditMode == 'arrow',
-                      onTap: () => setEditMode('arrow'),
-                    ),
-                    Container(width: 1, height: 40, color: Colors.grey[300], margin: const EdgeInsets.symmetric(horizontal: 6)),
-                    _buildNavButton(
-                      icon: Icons.rotate_right,
-                      label: '회전',
-                      onTap: () {
-                        if (selectedShapeIndex != null) {
-                          setState(() {
-                            shapes[selectedShapeIndex!].rotation += 90;
-                          });
-                        } else if (selectedSlot != null && photoData.containsKey(selectedSlot)) {
-                          rotatePhoto(selectedSlot!);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('회전할 항목을 먼저 선택해주세요'),
-                              duration: Duration(milliseconds: 100),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                    _buildNavButton(
-                      icon: Icons.delete_outline,
-                      label: '삭제',
-                      onTap: () {
-                        if (selectedShapeIndex != null) {
-                          setState(() {
-                            shapes.removeAt(selectedShapeIndex!);
-                            selectedShapeIndex = null;
-                          });
-                        } else if (selectedSlot != null && photoData.containsKey(selectedSlot)) {
-                          removePhoto(selectedSlot!);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('삭제할 항목을 먼저 선택해주세요'),
-                              duration: Duration(milliseconds: 100),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                    _buildNavButton(
-                      icon: Icons.refresh,
-                      label: '초기화',
-                      onTap: () {
-                        _showResetDialog();
-                      },
-                    ),
-                  ],
-                ),
+                ],
               ),
+            ),
           ),
         ),
       ),
@@ -4591,7 +4475,7 @@ class CoverPageWidget extends StatelessWidget {
         return _buildDocumentTemplate();
       case 'quotation':
       case 'quotation_ko':
-        return _buildQuotationTemplate();
+        return _buildQuotationTemplate(context);
       case 'photo_text':
         return _buildPhotoTextTemplate();
       case 'text_only':
@@ -5226,165 +5110,182 @@ class CoverPageWidget extends StatelessWidget {
     );
   }
   
-  Widget _buildQuotationTemplate() {
+  Widget _buildQuotationTemplate(BuildContext context) {
     final bool isWeb = kIsWeb;
+    // 화면 크기 정보 가져오기
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final screenWidth = mediaQuery.size.width;
+    final isMobileWeb = kIsWeb && screenWidth < 768;
     
-    return Container(
-      color: Colors.white,
-      child: Padding(
-        padding: EdgeInsets.all(isWeb ? 20 : 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min, // 필요한 공간만 차지하도록 설정
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-              // 헤더부 - 로고와 견적서 타이틀
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // 좌측 로고 영역
-                  GestureDetector(
-                    onTap: isForExport ? null : () => onFieldTap?.call('logo'),
-                    child: Container(
-                      width: 60,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                      child: coverData.logoImage != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(2),
-                              child: Image.memory(
-                                base64Decode(coverData.logoImage!),
-                                fit: BoxFit.cover,
-                                width: 60,
-                                height: 50,
-                              ),
-                            )
-                          : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.add_a_photo, color: Colors.grey[400], size: 16),
-                                Text('LOGO', style: TextStyle(color: Colors.grey[400], fontSize: 8)),
-                              ],
-                            ),
-                    ),
+    // 모바일 웹에서 화면 높이에 따른 동적 크기 조정 - 더 극적인 축소
+    final headerHeight = isMobileWeb ? (screenHeight * 0.04).clamp(25.0, 40.0) : 50.0;
+    final logoSize = isMobileWeb ? (screenWidth * 0.08).clamp(30.0, 45.0) : 60.0;
+    final titleFontSize = isMobileWeb ? (screenWidth * 0.025).clamp(12.0, 16.0) : (isForExport ? 24.0 : 22.0); // 60%로 축소
+    final padding = isMobileWeb ? (screenWidth * 0.015).clamp(6.0, 12.0) : (isWeb ? 20.0 : 16.0);
+    final sectionSpacing = isMobileWeb ? (screenHeight * 0.004).clamp(1.0, 4.0) : 8.0; // 반으로 축소
+    final smallSpacing = isMobileWeb ? (screenHeight * 0.002).clamp(1.0, 2.0) : 4.0; // 반으로 축소
+    
+    final Widget contentWidget = Padding(
+      padding: EdgeInsets.all(padding),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 헤더부 - 로고와 견적서 타이틀 (상단 공간 줄임)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // 좌측 로고 영역 (크기 줄임)
+              GestureDetector(
+                onTap: isForExport ? null : () => onFieldTap?.call('logo'),
+                child: Container(
+                  width: logoSize,
+                  height: headerHeight,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[300]!),
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  // 중앙 타이틀
-                  Text(
-                    'ESTIMATE',
-                    style: TextStyle(
-                      fontSize: isForExport ? 24 : 22,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 3,
-                    ),
-                  ),
-                  // 우측 번호 영역
-                  GestureDetector(
-                    onTap: isForExport ? null : () => onFieldTap?.call('estNo'),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                      child: Text(
-                        coverData.estNo ?? 'Est. No.',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey[600],
+                  child: coverData.logoImage != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(2),
+                          child: Image.memory(
+                            base64Decode(coverData.logoImage!),
+                            fit: BoxFit.cover,
+                            width: logoSize,
+                            height: headerHeight,
+                          ),
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_a_photo, color: Colors.grey[400], size: isMobileWeb ? 12 : 16),
+                            Text('LOGO', style: TextStyle(color: Colors.grey[400], fontSize: isMobileWeb ? 6 : 8)),
+                          ],
                         ),
-                      ),
+                ),
+              ),
+              // 중앙 타이틀 (폰트 크기 조정)
+              Text(
+                'ESTIMATE',
+                style: TextStyle(
+                  fontSize: titleFontSize,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: isMobileWeb ? 1 : 3,
+                ),
+              ),
+              // 우측 번호 영역 (크기 줄임)
+              GestureDetector(
+                onTap: isForExport ? null : () => onFieldTap?.call('estNo'),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: isMobileWeb ? 6 : 10, vertical: isMobileWeb ? 3 : 5),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[300]!),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: Text(
+                    coverData.estNo ?? 'Est. No.',
+                    style: TextStyle(
+                      fontSize: isMobileWeb ? 6 : 10,
+                      color: Colors.grey[600],
                     ),
-                  ),
-                ],
-              ),
-              
-              // 구분선
-              Container(
-                margin: EdgeInsets.symmetric(vertical: 8),
-                height: 2,
-                color: Colors.black,
-              ),
-              
-              // 공급자 정보
-              Container(
-                alignment: Alignment.center,
-                padding: EdgeInsets.symmetric(vertical: 4),
-                color: Colors.grey[100],
-                child: Text(
-                  'Supplier Information',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              SizedBox(height: 4),
-              _buildSupplierInfo(),
-              SizedBox(height: 8),
-              
-              // 고객 정보
-              Container(
-                alignment: Alignment.center,
-                padding: EdgeInsets.symmetric(vertical: 4),
-                color: Colors.grey[100],
-                child: Text(
-                  'Customer Information',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              SizedBox(height: 4),
-              _buildCustomerInfo(),
-              SizedBox(height: 8),
-              
-              // 날짜와 프로젝트
-              Row(
-                children: [
-                  _buildDateProjectField('DATE', '', 'date'),
-                  SizedBox(width: 20),
-                  _buildDateProjectField('PROJECT', '', 'projectName'),
-                ],
-              ),
-              SizedBox(height: 8),
-              
-              // 견적 제출 문구
-              Center(
-                child: Text(
-                  'We hereby submit the above estimate',
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-              SizedBox(height: 8),
-              
-              // 견적 테이블
-              _buildEstimateTable(),
-              SizedBox(height: 8),
-              
-              // 총 금액
-              _buildTotalAmount(),
-              SizedBox(height: 6),
-              
-              // 하단 경고 문구
-              Center(
-                child: Text(
-                  '*This estimate is based on the time of writing and may vary depending on additional options',
-                  style: TextStyle(
-                    fontSize: 8,
-                    color: Colors.grey[600],
-                    fontStyle: FontStyle.italic,
                   ),
                 ),
               ),
             ],
           ),
+          
+          // 구분선 (높이 줄임)
+          Container(
+            margin: EdgeInsets.symmetric(vertical: smallSpacing),
+            height: isMobileWeb ? 1 : 2,
+            color: Colors.black,
+          ),
+          
+          // 공급자 정보 (패딩 더 줄임)
+          Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.symmetric(vertical: isMobileWeb ? smallSpacing * 0.2 : smallSpacing * 0.5),
+            color: Colors.grey[100],
+            child: Text(
+              'Supplier Information',
+              style: TextStyle(
+                fontSize: isMobileWeb ? 6 : 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          SizedBox(height: isMobileWeb ? smallSpacing * 0.2 : smallSpacing * 0.5),
+          _buildSupplierInfoResponsive(isMobileWeb),
+          SizedBox(height: isMobileWeb ? sectionSpacing * 0.3 : sectionSpacing * 0.6),
+          
+          // 고객 정보 (패딩 더 줄임)
+          Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.symmetric(vertical: isMobileWeb ? smallSpacing * 0.2 : smallSpacing * 0.5),
+            color: Colors.grey[100],
+            child: Text(
+              'Customer Information',
+              style: TextStyle(
+                fontSize: isMobileWeb ? 6 : 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          SizedBox(height: isMobileWeb ? smallSpacing * 0.2 : smallSpacing * 0.5),
+          _buildCustomerInfoResponsive(isMobileWeb),
+          SizedBox(height: isMobileWeb ? sectionSpacing * 0.3 : sectionSpacing * 0.6),
+          
+          // 날짜와 프로젝트 (간격 더 줄임)
+          Row(
+            children: [
+              _buildDateProjectField('DATE', '', 'date'),
+              SizedBox(width: isMobileWeb ? 6 : 20),
+              _buildDateProjectField('PROJECT', '', 'projectName'),
+            ],
+          ),
+          SizedBox(height: isMobileWeb ? sectionSpacing * 0.2 : sectionSpacing * 0.6),
+          
+          // 견적 제출 문구 (폰트 크기 더 줄임)
+          Center(
+            child: Text(
+              'We hereby submit the above estimate',
+              style: TextStyle(
+                fontSize: isMobileWeb ? 4 : 9,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+          SizedBox(height: isMobileWeb ? sectionSpacing * 0.2 : sectionSpacing * 0.6),
+          
+          // 견적 테이블 (여기에 더 많은 공간 할당)
+          _buildEstimateTable(),
+          SizedBox(height: isMobileWeb ? sectionSpacing * 0.3 : sectionSpacing * 0.8),
+          
+          // 총 금액
+          _buildTotalAmount(),
+          SizedBox(height: isMobileWeb ? smallSpacing * 0.5 : smallSpacing),
+          
+          // 하단 경고 문구 (폰트 크기 더 줄임)
+          Center(
+            child: Text(
+              '*This estimate is based on the time of writing and may vary depending on additional options',
+              style: TextStyle(
+                fontSize: isMobileWeb ? 4 : 8,
+                color: Colors.grey[600],
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+
+    return Container(
+      color: Colors.white,
+      child: (isMobileWeb && !isForExport) 
+          ? SingleChildScrollView(child: contentWidget) 
+          : contentWidget,
     );
   }
   
@@ -5417,6 +5318,39 @@ class CoverPageWidget extends StatelessWidget {
       ],
     );
   }
+
+  Widget _buildSupplierInfoResponsive(bool isMobileWeb) {
+    final spacing = isMobileWeb ? 3.0 : 15.0;
+    final verticalSpacing = isMobileWeb ? 0.5 : 4.0;
+    
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildInfoField('Company', '', 'supplierCompany'),
+            ),
+            SizedBox(width: spacing),
+            Expanded(
+              child: _buildInfoField('Email', '', 'supplierEmail'),
+            ),
+          ],
+        ),
+        SizedBox(height: verticalSpacing),
+        Row(
+          children: [
+            Expanded(
+              child: _buildInfoField('Contact', '', 'supplierContact'),
+            ),
+            SizedBox(width: spacing),
+            Expanded(
+              child: _buildInfoField('Tel', '', 'supplierTel'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
   
   Widget _buildCustomerInfo() {
     return Column(
@@ -5431,6 +5365,31 @@ class CoverPageWidget extends StatelessWidget {
               child: _buildInfoField('Tel', '', 'customerTel'),
             ),
             const SizedBox(width: 15),
+            Expanded(
+              child: _buildInfoField('Email', '', 'customerEmail'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCustomerInfoResponsive(bool isMobileWeb) {
+    final spacing = isMobileWeb ? 3.0 : 15.0;
+    final verticalSpacing = isMobileWeb ? 0.8 : 6.0;
+    
+    return Column(
+      children: [
+        _buildInfoField('Company', '', 'customerCompany'),
+        SizedBox(height: verticalSpacing),
+        _buildInfoField('Address', '', 'customerAddress'),
+        SizedBox(height: verticalSpacing),
+        Row(
+          children: [
+            Expanded(
+              child: _buildInfoField('Tel', '', 'customerTel'),
+            ),
+            SizedBox(width: spacing),
             Expanded(
               child: _buildInfoField('Email', '', 'customerEmail'),
             ),

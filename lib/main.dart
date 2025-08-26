@@ -4122,10 +4122,15 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         
         // 스크린샷 캡처 (고해상도)
         try {
+          // 화면 크기 미리 확인
+          final isMobileWeb = kIsWeb && MediaQuery.of(context).size.width < 768;
+          
           // 이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 시도
           final Uint8List? imageBytes = await _screenshotController.capture(
-            delay: const Duration(milliseconds: 200),
-            pixelRatio: 5.0, // 초고해상도 캡처 (기존 3.0 → 5.0)
+            delay: Duration(milliseconds: isMobileWeb ? 500 : 200),
+            pixelRatio: kIsWeb 
+              ? (isMobileWeb ? 2.0 : 4.0) // 모바일 웹: 2.0, 데스크톱 웹: 4.0
+              : 5.0, // 모바일 앱: 5.0
           );
           
           if (imageBytes != null) {
@@ -4350,9 +4355,14 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         await Future.delayed(const Duration(milliseconds: 100));
         
         try {
+          // 화면 크기 미리 확인
+          final isMobileWeb = kIsWeb && MediaQuery.of(context).size.width < 768;
+          
           final Uint8List? imageBytes = await _screenshotController.capture(
-            pixelRatio: 6.0, // 초고해상도 캡처 (PDF용, 기존 4.0 → 6.0)
-            delay: const Duration(milliseconds: 50),
+            pixelRatio: kIsWeb 
+              ? (isMobileWeb ? 3.0 : 6.0) // 모바일 웹: 3.0, 데스크톱 웹: 6.0
+              : 6.0, // 모바일 앱: 6.0
+            delay: Duration(milliseconds: isMobileWeb ? 200 : 50),
           );
           
           if (imageBytes != null) {

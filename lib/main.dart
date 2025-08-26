@@ -390,6 +390,16 @@ class CoverPageData {
   Color secondaryColor;
   String? logoImage;
   
+  // 견적서 세부 필드들
+  String? supplierCompany;
+  String? supplierEmail;
+  String? supplierContact;
+  String? supplierTel;
+  String? customerCompany;
+  String? customerAddress;
+  String? customerTel;
+  String? customerEmail;
+  
   CoverPageData({
     this.template = 'none',
     this.title = '',
@@ -406,6 +416,14 @@ class CoverPageData {
     this.primaryColor = Colors.blue,
     this.secondaryColor = Colors.white,
     this.logoImage,
+    this.supplierCompany,
+    this.supplierEmail,
+    this.supplierContact,
+    this.supplierTel,
+    this.customerCompany,
+    this.customerAddress,
+    this.customerTel,
+    this.customerEmail,
   }) : textLines = textLines ?? List.filled(10, '');
 }
 
@@ -1600,6 +1618,30 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       case 'totalAmount':
         currentValue = coverPage?.totalAmount ?? '';
         break;
+      case 'supplierCompany':
+        currentValue = coverPage?.supplierCompany ?? '';
+        break;
+      case 'supplierEmail':
+        currentValue = coverPage?.supplierEmail ?? '';
+        break;
+      case 'supplierContact':
+        currentValue = coverPage?.supplierContact ?? '';
+        break;
+      case 'supplierTel':
+        currentValue = coverPage?.supplierTel ?? '';
+        break;
+      case 'customerCompany':
+        currentValue = coverPage?.customerCompany ?? '';
+        break;
+      case 'customerAddress':
+        currentValue = coverPage?.customerAddress ?? '';
+        break;
+      case 'customerTel':
+        currentValue = coverPage?.customerTel ?? '';
+        break;
+      case 'customerEmail':
+        currentValue = coverPage?.customerEmail ?? '';
+        break;
       case 'textLine':
         if (textLineIndex != null && textLineIndex < (coverPage?.textLines.length ?? 0)) {
           currentValue = coverPage!.textLines[textLineIndex];
@@ -1648,6 +1690,30 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         break;
       case 'totalAmount':
         coverPage!.totalAmount = newValue;
+        break;
+      case 'supplierCompany':
+        coverPage!.supplierCompany = newValue;
+        break;
+      case 'supplierEmail':
+        coverPage!.supplierEmail = newValue;
+        break;
+      case 'supplierContact':
+        coverPage!.supplierContact = newValue;
+        break;
+      case 'supplierTel':
+        coverPage!.supplierTel = newValue;
+        break;
+      case 'customerCompany':
+        coverPage!.customerCompany = newValue;
+        break;
+      case 'customerAddress':
+        coverPage!.customerAddress = newValue;
+        break;
+      case 'customerTel':
+        coverPage!.customerTel = newValue;
+        break;
+      case 'customerEmail':
+        coverPage!.customerEmail = newValue;
         break;
       case 'textLine':
         if (editingTextLineIndex >= 0 && editingTextLineIndex < coverPage!.textLines.length) {
@@ -5060,7 +5126,7 @@ class CoverPageWidget extends StatelessWidget {
     return Container(
       color: Colors.white,
       child: Padding(
-        padding: EdgeInsets.all(isWeb ? 12 : 10),
+        padding: EdgeInsets.all(isWeb ? 20 : 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -5072,95 +5138,105 @@ class CoverPageWidget extends StatelessWidget {
                   GestureDetector(
                     onTap: isForExport ? null : () => onFieldTap?.call('logo'),
                     child: Container(
-                      width: isWeb ? 70 : 60,
-                      height: isWeb ? 50 : 45,
+                      width: 60,
+                      height: 50,
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey[300]!),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(2),
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.add_a_photo, color: Colors.grey[400], size: isWeb ? 18 : 16),
-                          Text('LOGO', style: TextStyle(color: Colors.grey[400], fontSize: isWeb ? 9 : 8)),
+                          Icon(Icons.add_a_photo, color: Colors.grey[400], size: 16),
+                          Text('LOGO', style: TextStyle(color: Colors.grey[400], fontSize: 8)),
                         ],
                       ),
                     ),
                   ),
                   // 중앙 타이틀
                   Text(
-                    isKorean ? '견 적 서' : 'ESTIMATE',
+                    'ESTIMATE',
                     style: TextStyle(
-                      fontSize: isForExport ? 22 : (isWeb ? 20 : 18),
+                      fontSize: isForExport ? 24 : 22,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: isKorean ? 4 : 2,
+                      letterSpacing: 3,
                     ),
                   ),
                   // 우측 번호 영역
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: isWeb ? 8 : 6, vertical: isWeb ? 4 : 3),
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                     child: Text(
-                      isKorean ? '견적번호' : 'Est. No.',
+                      'Est. No.',
                       style: TextStyle(
-                        fontSize: isForExport ? 9 : 8,
+                        fontSize: 10,
                         color: Colors.grey[600],
                       ),
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: isWeb ? 12 : 10),
+              
+              // 구분선
+              Container(
+                margin: EdgeInsets.symmetric(vertical: 8),
+                height: 2,
+                color: Colors.black,
+              ),
               
               // 공급자 정보
-              Text(
-                isKorean ? '공급자 정보' : 'Supplier Information',
-                style: TextStyle(
-                  fontSize: isForExport ? 10 : (isWeb ? 9 : 8),
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[700],
+              Container(
+                alignment: Alignment.center,
+                padding: EdgeInsets.symmetric(vertical: 4),
+                color: Colors.grey[100],
+                child: Text(
+                  'Supplier Information',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               SizedBox(height: 4),
               _buildSupplierInfo(),
-              SizedBox(height: isWeb ? 10 : 8),
+              SizedBox(height: 8),
               
               // 고객 정보
-              Text(
-                isKorean ? '고객 정보' : 'Customer Information',
-                style: TextStyle(
-                  fontSize: isForExport ? 10 : (isWeb ? 9 : 8),
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[700],
+              Container(
+                alignment: Alignment.center,
+                padding: EdgeInsets.symmetric(vertical: 4),
+                color: Colors.grey[100],
+                child: Text(
+                  'Customer Information',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               SizedBox(height: 4),
               _buildCustomerInfo(),
-              SizedBox(height: isWeb ? 10 : 8),
+              SizedBox(height: 8),
               
               // 날짜와 프로젝트
               Row(
                 children: [
-                  Expanded(
-                    child: _buildInfoField(isKorean ? '날짜' : 'DATE', coverData.date.isNotEmpty ? coverData.date : '2025-08-26', 'date'),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: _buildInfoField(isKorean ? '프로젝트' : 'PROJECT', coverData.projectName ?? (isKorean ? '프로젝트명' : 'Project Name'), 'projectName'),
-                  ),
+                  _buildDateProjectField('DATE', '', 'date'),
+                  SizedBox(width: 20),
+                  _buildDateProjectField('PROJECT', '', 'projectName'),
                 ],
               ),
-              SizedBox(height: 6),
+              SizedBox(height: 8),
               
               // 견적 제출 문구
               Center(
                 child: Text(
-                  isKorean ? '상기와 같이 견적서를 제출합니다' : 'We hereby submit the above estimate',
+                  'We hereby submit the above estimate',
                   style: TextStyle(
-                    fontSize: isForExport ? 9 : (isWeb ? 8 : 7),
+                    fontSize: 9,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -5171,20 +5247,18 @@ class CoverPageWidget extends StatelessWidget {
               Expanded(
                 child: _buildEstimateTable(),
               ),
-              SizedBox(height: 6),
+              SizedBox(height: 8),
               
               // 총 금액
               _buildTotalAmount(),
-              SizedBox(height: 4),
+              SizedBox(height: 6),
               
               // 하단 경고 문구
               Center(
                 child: Text(
-                  isKorean 
-                    ? '*위 견적은 작성당시 기준이며 추가 옵션에 따라 변동될 수 있습니다'
-                    : '*This estimate is based on the time of writing and may vary depending on additional options',
+                  '*This estimate is based on the time of writing and may vary depending on additional options',
                   style: TextStyle(
-                    fontSize: isForExport ? 7 : 6,
+                    fontSize: 8,
                     color: Colors.grey[600],
                     fontStyle: FontStyle.italic,
                   ),
@@ -5197,17 +5271,16 @@ class CoverPageWidget extends StatelessWidget {
   }
   
   Widget _buildSupplierInfo() {
-    final bool isKorean = coverData.template == 'quotation_ko';
     return Column(
       children: [
         Row(
           children: [
             Expanded(
-              child: _buildInfoField(isKorean ? '회사명' : 'Company', isKorean ? '회사명' : 'Company Name', 'supplierCompany'),
+              child: _buildInfoField('Company', '', 'supplierCompany'),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 15),
             Expanded(
-              child: _buildInfoField(isKorean ? '이메일' : 'Email', isKorean ? '이메일' : 'Email', 'supplierEmail'),
+              child: _buildInfoField('Email', '', 'supplierEmail'),
             ),
           ],
         ),
@@ -5215,11 +5288,11 @@ class CoverPageWidget extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _buildInfoField(isKorean ? '담당자' : 'Contact', isKorean ? '담당자' : 'Manager', 'supplierContact'),
+              child: _buildInfoField('Contact', '', 'supplierContact'),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 15),
             Expanded(
-              child: _buildInfoField(isKorean ? '전화' : 'Tel', isKorean ? '전화' : 'Tel', 'supplierTel'),
+              child: _buildInfoField('Tel', '', 'supplierTel'),
             ),
           ],
         ),
@@ -5228,21 +5301,20 @@ class CoverPageWidget extends StatelessWidget {
   }
   
   Widget _buildCustomerInfo() {
-    final bool isKorean = coverData.template == 'quotation_ko';
     return Column(
       children: [
-        _buildInfoField(isKorean ? '회사명' : 'Company', isKorean ? '회사명' : 'Company Name', 'customerCompany'),
-        const SizedBox(height: 4),
-        _buildInfoField(isKorean ? '주소' : 'Address', '', 'customerAddress'),
-        const SizedBox(height: 4),
+        _buildInfoField('Company', '', 'customerCompany'),
+        const SizedBox(height: 6),
+        _buildInfoField('Address', '', 'customerAddress'),
+        const SizedBox(height: 6),
         Row(
           children: [
             Expanded(
-              child: _buildInfoField(isKorean ? '전화' : 'Tel', '', 'customerTel'),
+              child: _buildInfoField('Tel', '', 'customerTel'),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 15),
             Expanded(
-              child: _buildInfoField(isKorean ? '이메일' : 'Email', '', 'customerEmail'),
+              child: _buildInfoField('Email', '', 'customerEmail'),
             ),
           ],
         ),
@@ -5251,29 +5323,61 @@ class CoverPageWidget extends StatelessWidget {
   }
   
   Widget _buildInfoField(String label, String value, String fieldType) {
+    // 실제 데이터 가져오기
+    String actualValue = '';
+    switch (fieldType) {
+      case 'supplierCompany':
+        actualValue = coverData.supplierCompany ?? '';
+        break;
+      case 'supplierEmail':
+        actualValue = coverData.supplierEmail ?? '';
+        break;
+      case 'supplierContact':
+        actualValue = coverData.supplierContact ?? '';
+        break;
+      case 'supplierTel':
+        actualValue = coverData.supplierTel ?? '';
+        break;
+      case 'customerCompany':
+        actualValue = coverData.customerCompany ?? '';
+        break;
+      case 'customerAddress':
+        actualValue = coverData.customerAddress ?? '';
+        break;
+      case 'customerTel':
+        actualValue = coverData.customerTel ?? '';
+        break;
+      case 'customerEmail':
+        actualValue = coverData.customerEmail ?? '';
+        break;
+      default:
+        actualValue = value;
+    }
+    
     return GestureDetector(
       onTap: isForExport ? null : () => onFieldTap?.call(fieldType),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        height: 22,
         decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
+          border: Border(bottom: BorderSide(color: Colors.grey[400]!, width: 0.5)),
         ),
         child: Row(
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: isForExport ? 11 : 10,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+            SizedBox(
+              width: 50,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 9,
+                  color: Colors.grey[700],
+                ),
               ),
             ),
-            const SizedBox(width: 8),
             Expanded(
               child: Text(
-                value.isEmpty ? '' : value,
+                actualValue.isEmpty ? '' : actualValue,
                 style: TextStyle(
-                  fontSize: isForExport ? 11 : 10,
+                  fontSize: 9,
                   color: Colors.black87,
                 ),
               ),
@@ -5284,32 +5388,80 @@ class CoverPageWidget extends StatelessWidget {
     );
   }
   
+  Widget _buildDateProjectField(String label, String value, String fieldType) {
+    // 실제 데이터 가져오기
+    String actualValue = '';
+    switch (fieldType) {
+      case 'date':
+        actualValue = coverData.date.isNotEmpty ? coverData.date : '';
+        break;
+      case 'projectName':
+        actualValue = coverData.projectName ?? '';
+        break;
+      default:
+        actualValue = value;
+    }
+    
+    return Expanded(
+      child: GestureDetector(
+        onTap: isForExport ? null : () => onFieldTap?.call(fieldType),
+        child: Container(
+          height: 22,
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.grey[400]!, width: 0.5)),
+          ),
+          child: Row(
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 9,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  actualValue.isEmpty ? '' : actualValue,
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
   Widget _buildEstimateTable() {
     final bool isWeb = kIsWeb;
-    final bool isKorean = coverData.template == 'quotation_ko';
-    final int rowCount = isWeb ? 8 : 6; // 줄 수를 더 줄임
+    final int rowCount = isWeb ? 10 : 8; // 이미지와 같이 10줄
     
     return Table(
-      border: TableBorder.all(color: Colors.grey[400]!, width: 1),
+      border: TableBorder.all(color: Colors.grey[400]!, width: 0.5),
       columnWidths: const {
-        0: FlexColumnWidth(3), // Description
-        1: FlexColumnWidth(2), // Specification
+        0: FlexColumnWidth(2.5), // Description
+        1: FlexColumnWidth(2), // Specification  
         2: FlexColumnWidth(1), // Unit
-        3: FlexColumnWidth(1), // Qty
-        4: FlexColumnWidth(2), // Price
+        3: FlexColumnWidth(0.8), // Qty
+        4: FlexColumnWidth(1.5), // Price
         5: FlexColumnWidth(2), // Remarks
       },
       children: [
         // 테이블 헤더
         TableRow(
-          decoration: BoxDecoration(color: Colors.grey[100]),
+          decoration: BoxDecoration(color: Colors.grey[200]),
           children: [
-            _buildTableHeader(isKorean ? '품목' : 'Description'),
-            _buildTableHeader(isKorean ? '사양' : 'Specification'),
-            _buildTableHeader(isKorean ? '단위' : 'Unit'),
-            _buildTableHeader(isKorean ? '수량' : 'Qty'),
-            _buildTableHeader(isKorean ? '가격' : 'Price'),
-            _buildTableHeader(isKorean ? '비고' : 'Remarks'),
+            _buildTableHeader('Description'),
+            _buildTableHeader('Specification'),
+            _buildTableHeader('Unit'),
+            _buildTableHeader('Qty'),
+            _buildTableHeader('Price'),
+            _buildTableHeader('Remarks'),
           ],
         ),
         // 테이블 행들
@@ -5319,7 +5471,7 @@ class CoverPageWidget extends StatelessWidget {
               _buildTableCell('', 'description_$i'),
               _buildTableCell('', 'specification_$i'),
               _buildTableCell('', 'unit_$i'),
-              _buildTableCell('1', 'qty_$i'),
+              _buildTableCell('', 'qty_$i'),
               _buildTableCell('', 'price_$i'),
               _buildTableCell('', 'remarks_$i'),
             ],
@@ -5329,14 +5481,13 @@ class CoverPageWidget extends StatelessWidget {
   }
   
   Widget _buildTableHeader(String text) {
-    final bool isWeb = kIsWeb;
     return Container(
-      padding: EdgeInsets.all(isWeb ? 6 : 4),
+      padding: EdgeInsets.symmetric(vertical: 6, horizontal: 3),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: isForExport ? 9 : (isWeb ? 8 : 7),
-          fontWeight: FontWeight.bold,
+          fontSize: 8,
+          fontWeight: FontWeight.w600,
         ),
         textAlign: TextAlign.center,
       ),
@@ -5344,16 +5495,15 @@ class CoverPageWidget extends StatelessWidget {
   }
   
   Widget _buildTableCell(String text, String fieldType) {
-    final bool isWeb = kIsWeb;
     return GestureDetector(
       onTap: isForExport ? null : () => onFieldTap?.call(fieldType),
       child: Container(
-        padding: EdgeInsets.all(isWeb ? 4 : 3),
-        height: isForExport ? 30 : (isWeb ? 25 : 22),
+        padding: EdgeInsets.all(4),
+        height: 26,
         child: Text(
           text,
           style: TextStyle(
-            fontSize: isForExport ? 9 : (isWeb ? 8 : 7),
+            fontSize: 8,
           ),
           textAlign: TextAlign.center,
         ),
@@ -5362,20 +5512,17 @@ class CoverPageWidget extends StatelessWidget {
   }
   
   Widget _buildTotalAmount() {
-    final bool isKorean = coverData.template == 'quotation_ko';
-    final bool isWeb = kIsWeb;
-    
     return Container(
-      padding: EdgeInsets.all(isWeb ? 10 : 8),
+      padding: EdgeInsets.all(10),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[400]!),
+        border: Border.all(color: Colors.grey[400]!, width: 0.5),
       ),
       child: Row(
         children: [
           Text(
-            isKorean ? '총 금액' : 'Total Amount',
+            'Total Amount',
             style: TextStyle(
-              fontSize: isForExport ? 12 : (isWeb ? 11 : 10),
+              fontSize: 11,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -5383,18 +5530,18 @@ class CoverPageWidget extends StatelessWidget {
           GestureDetector(
             onTap: isForExport ? null : () => onFieldTap?.call('totalAmount'),
             child: Text(
-              isKorean ? '₩ 10,000,000' : '\$ 10,000,000',
+              '\$ 10,000,000',
               style: TextStyle(
-                fontSize: isForExport ? 14 : (isWeb ? 12 : 11),
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
           const SizedBox(width: 10),
           Text(
-            isKorean ? 'KRW (부가세 별도)' : 'USD (Tax excluded)',
+            'USD (Tax excluded)',
             style: TextStyle(
-              fontSize: isForExport ? 9 : 8,
+              fontSize: 8,
               color: Colors.grey[600],
             ),
           ),

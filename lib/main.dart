@@ -1411,7 +1411,8 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                       _buildTemplateOption('제안서', 'proposal', setDialogState),
                       _buildTemplateOption('앨범', 'album', setDialogState),
                       _buildTemplateOption('레포트', 'document', setDialogState),
-                      _buildTemplateOption('견적서', 'quotation', setDialogState),
+                      _buildTemplateOption('견적서(영문)', 'quotation', setDialogState),
+                      _buildTemplateOption('견적서(한글)', 'quotation_ko', setDialogState),
                       _buildTemplateOption('사진+텍스트', 'photo_text', setDialogState),
                       _buildTemplateOption('텍스트전용', 'text_only', setDialogState),
                     ],
@@ -1494,13 +1495,23 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 coverPage!.primaryColor = Colors.indigo;
                 break;
               case 'quotation':
+                coverPage!.title = 'ESTIMATE';
+                coverPage!.subtitle = 'Photo Service';
+                coverPage!.author = 'Manager';
+                coverPage!.date = DateTime.now().toString().split(' ')[0];
+                coverPage!.customerName = 'Company Name';
+                coverPage!.projectName = 'Project Name';
+                coverPage!.totalAmount = '\$ 10,000,000';
+                coverPage!.primaryColor = Colors.green;
+                break;
+              case 'quotation_ko':
                 coverPage!.title = '견적서';
                 coverPage!.subtitle = '사진 촬영 서비스';
                 coverPage!.author = '담당자';
                 coverPage!.date = DateTime.now().toString().split(' ')[0];
                 coverPage!.customerName = '고객사명';
                 coverPage!.projectName = '프로젝트명';
-                coverPage!.totalAmount = '₩ 1,000,000';
+                coverPage!.totalAmount = '₩ 10,000,000';
                 coverPage!.primaryColor = Colors.green;
                 break;
               case 'photo_text':
@@ -4403,6 +4414,7 @@ class CoverPageWidget extends StatelessWidget {
       case 'document':
         return _buildDocumentTemplate();
       case 'quotation':
+      case 'quotation_ko':
         return _buildQuotationTemplate();
       case 'photo_text':
         return _buildPhotoTextTemplate();
@@ -5039,196 +5051,351 @@ class CoverPageWidget extends StatelessWidget {
   }
   
   Widget _buildQuotationTemplate() {
+    final bool isWeb = kIsWeb;
+    final bool isMobile = !isWeb;
+    
+    // 한국어 버전인지 확인 (템플릿 이름으로 구분)
+    final bool isKorean = coverData.template == 'quotation_ko';
+    
     return Container(
       color: Colors.white,
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-            // 견적서 타이틀
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: isForExport ? null : () => onFieldTap?.call('title'),
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          child: Text(
-                            coverData.title.isEmpty ? '제목을 터치하여 편집' : coverData.title,
-                            style: TextStyle(
-                              fontSize: isForExport ? 20 : 18,
-                              fontWeight: FontWeight.bold,
-                              color: coverData.title.isEmpty ? Colors.grey[400] : coverData.primaryColor,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: isForExport ? null : () => onFieldTap?.call('subtitle'),
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          child: Text(
-                            coverData.subtitle.isEmpty ? '부제목을 터치하여 편집' : coverData.subtitle,
-                            style: TextStyle(
-                              fontSize: isForExport ? 10 : 9,
-                              color: coverData.subtitle.isEmpty ? Colors.grey[400] : Colors.grey[600],
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: coverData.primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Icon(
-                    Icons.request_quote,
-                    size: isForExport ? 24 : 20,
-                    color: coverData.primaryColor,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // 구분선
-            Container(
-              height: 1.5,
-              color: coverData.primaryColor.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 8),
-            // 고객 정보
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+      child: Padding(
+        padding: EdgeInsets.all(isWeb ? 12 : 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+              // 헤더부 - 로고와 견적서 타이틀
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    '고객 정보',
-                    style: TextStyle(
-                      fontSize: isForExport ? 12 : 11,
-                      fontWeight: FontWeight.bold,
-                      color: coverData.primaryColor,
+                  // 좌측 로고 영역
+                  GestureDetector(
+                    onTap: isForExport ? null : () => onFieldTap?.call('logo'),
+                    child: Container(
+                      width: isWeb ? 70 : 60,
+                      height: isWeb ? 50 : 45,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add_a_photo, color: Colors.grey[400], size: isWeb ? 18 : 16),
+                          Text('LOGO', style: TextStyle(color: Colors.grey[400], fontSize: isWeb ? 9 : 8)),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  _buildEditableInfoRow('고객명', coverData.customerName ?? '', 'customerName'),
-                  _buildEditableInfoRow('프로젝트', coverData.projectName ?? '', 'projectName'),
-                  _buildEditableInfoRow('작성일', coverData.date, 'date'),
-                  _buildEditableInfoRow('담당자', coverData.author, 'author'),
+                  // 중앙 타이틀
+                  Text(
+                    isKorean ? '견 적 서' : 'ESTIMATE',
+                    style: TextStyle(
+                      fontSize: isForExport ? 22 : (isWeb ? 20 : 18),
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: isKorean ? 4 : 2,
+                    ),
+                  ),
+                  // 우측 번호 영역
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: isWeb ? 8 : 6, vertical: isWeb ? 4 : 3),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      isKorean ? '견적번호' : 'Est. No.',
+                      style: TextStyle(
+                        fontSize: isForExport ? 9 : 8,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 6),
-            // 총 금액
-            GestureDetector(
-              onTap: isForExport ? null : () => onFieldTap?.call('totalAmount'),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: coverData.primaryColor,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '총 견적 금액',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: isForExport ? 12 : 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Flexible(
-                      child: Text(
-                        (coverData.totalAmount?.isEmpty ?? true) ? '금액을 터치하여 편집' : coverData.totalAmount!,
-                        style: TextStyle(
-                          color: (coverData.totalAmount?.isEmpty ?? true) ? Colors.white.withValues(alpha: 0.7) : Colors.white,
-                          fontSize: isForExport ? 14 : 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.right,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            // 하단 정보
-            Center(
-              child: Text(
-                '본 견적서의 유효기간은 발행일로부터 30일입니다',
+              SizedBox(height: isWeb ? 12 : 10),
+              
+              // 공급자 정보
+              Text(
+                isKorean ? '공급자 정보' : 'Supplier Information',
                 style: TextStyle(
-                  fontSize: isForExport ? 8 : 7,
-                  color: Colors.grey[500],
+                  fontSize: isForExport ? 10 : (isWeb ? 9 : 8),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[700],
                 ),
               ),
-            ),
-            const SizedBox(height: 4),
-          ],
-        ),
+              SizedBox(height: 4),
+              _buildSupplierInfo(),
+              SizedBox(height: isWeb ? 10 : 8),
+              
+              // 고객 정보
+              Text(
+                isKorean ? '고객 정보' : 'Customer Information',
+                style: TextStyle(
+                  fontSize: isForExport ? 10 : (isWeb ? 9 : 8),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[700],
+                ),
+              ),
+              SizedBox(height: 4),
+              _buildCustomerInfo(),
+              SizedBox(height: isWeb ? 10 : 8),
+              
+              // 날짜와 프로젝트
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildInfoField(isKorean ? '날짜' : 'DATE', coverData.date.isNotEmpty ? coverData.date : '2025-08-26', 'date'),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: _buildInfoField(isKorean ? '프로젝트' : 'PROJECT', coverData.projectName ?? (isKorean ? '프로젝트명' : 'Project Name'), 'projectName'),
+                  ),
+                ],
+              ),
+              SizedBox(height: 6),
+              
+              // 견적 제출 문구
+              Center(
+                child: Text(
+                  isKorean ? '상기와 같이 견적서를 제출합니다' : 'We hereby submit the above estimate',
+                  style: TextStyle(
+                    fontSize: isForExport ? 9 : (isWeb ? 8 : 7),
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+              SizedBox(height: 8),
+              
+              // 견적 테이블
+              Expanded(
+                child: _buildEstimateTable(),
+              ),
+              SizedBox(height: 6),
+              
+              // 총 금액
+              _buildTotalAmount(),
+              SizedBox(height: 4),
+              
+              // 하단 경고 문구
+              Center(
+                child: Text(
+                  isKorean 
+                    ? '*위 견적은 작성당시 기준이며 추가 옵션에 따라 변동될 수 있습니다'
+                    : '*This estimate is based on the time of writing and may vary depending on additional options',
+                  style: TextStyle(
+                    fontSize: isForExport ? 7 : 6,
+                    color: Colors.grey[600],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ],
+          ),
       ),
-    ),
     );
   }
   
-  Widget _buildEditableInfoRow(String label, String value, String fieldType) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
+  Widget _buildSupplierInfo() {
+    final bool isKorean = coverData.template == 'quotation_ko';
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildInfoField(isKorean ? '회사명' : 'Company', isKorean ? '회사명' : 'Company Name', 'supplierCompany'),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildInfoField(isKorean ? '이메일' : 'Email', isKorean ? '이메일' : 'Email', 'supplierEmail'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Expanded(
+              child: _buildInfoField(isKorean ? '담당자' : 'Contact', isKorean ? '담당자' : 'Manager', 'supplierContact'),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildInfoField(isKorean ? '전화' : 'Tel', isKorean ? '전화' : 'Tel', 'supplierTel'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildCustomerInfo() {
+    final bool isKorean = coverData.template == 'quotation_ko';
+    return Column(
+      children: [
+        _buildInfoField(isKorean ? '회사명' : 'Company', isKorean ? '회사명' : 'Company Name', 'customerCompany'),
+        const SizedBox(height: 4),
+        _buildInfoField(isKorean ? '주소' : 'Address', '', 'customerAddress'),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Expanded(
+              child: _buildInfoField(isKorean ? '전화' : 'Tel', '', 'customerTel'),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildInfoField(isKorean ? '이메일' : 'Email', '', 'customerEmail'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildInfoField(String label, String value, String fieldType) {
+    return GestureDetector(
+      onTap: isForExport ? null : () => onFieldTap?.call(fieldType),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
+        ),
+        child: Row(
+          children: [
+            Text(
               label,
               style: TextStyle(
                 fontSize: isForExport ? 11 : 10,
                 color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ),
-          Text(
-            ':  ',
-            style: TextStyle(
-              fontSize: isForExport ? 11 : 10,
-              color: Colors.grey[600],
-            ),
-          ),
-          Expanded(
-            child: GestureDetector(
-              onTap: isForExport ? null : () => onFieldTap?.call(fieldType),
-              child: Container(
-                padding: const EdgeInsets.all(6),
-                child: Text(
-                  value.isEmpty ? '$label을 터치하여 편집' : value,
-                  style: TextStyle(
-                    fontSize: isForExport ? 11 : 10,
-                    fontWeight: FontWeight.w500,
-                    color: value.isEmpty ? Colors.grey[400] : Colors.black87,
-                  ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                value.isEmpty ? '' : value,
+                style: TextStyle(
+                  fontSize: isForExport ? 11 : 10,
+                  color: Colors.black87,
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildEstimateTable() {
+    final bool isWeb = kIsWeb;
+    final bool isKorean = coverData.template == 'quotation_ko';
+    final int rowCount = isWeb ? 8 : 6; // 줄 수를 더 줄임
+    
+    return Table(
+      border: TableBorder.all(color: Colors.grey[400]!, width: 1),
+      columnWidths: const {
+        0: FlexColumnWidth(3), // Description
+        1: FlexColumnWidth(2), // Specification
+        2: FlexColumnWidth(1), // Unit
+        3: FlexColumnWidth(1), // Qty
+        4: FlexColumnWidth(2), // Price
+        5: FlexColumnWidth(2), // Remarks
+      },
+      children: [
+        // 테이블 헤더
+        TableRow(
+          decoration: BoxDecoration(color: Colors.grey[100]),
+          children: [
+            _buildTableHeader(isKorean ? '품목' : 'Description'),
+            _buildTableHeader(isKorean ? '사양' : 'Specification'),
+            _buildTableHeader(isKorean ? '단위' : 'Unit'),
+            _buildTableHeader(isKorean ? '수량' : 'Qty'),
+            _buildTableHeader(isKorean ? '가격' : 'Price'),
+            _buildTableHeader(isKorean ? '비고' : 'Remarks'),
+          ],
+        ),
+        // 테이블 행들
+        for (int i = 0; i < rowCount; i++)
+          TableRow(
+            children: [
+              _buildTableCell('', 'description_$i'),
+              _buildTableCell('', 'specification_$i'),
+              _buildTableCell('', 'unit_$i'),
+              _buildTableCell('1', 'qty_$i'),
+              _buildTableCell('', 'price_$i'),
+              _buildTableCell('', 'remarks_$i'),
+            ],
+          ),
+      ],
+    );
+  }
+  
+  Widget _buildTableHeader(String text) {
+    final bool isWeb = kIsWeb;
+    return Container(
+      padding: EdgeInsets.all(isWeb ? 6 : 4),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: isForExport ? 9 : (isWeb ? 8 : 7),
+          fontWeight: FontWeight.bold,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+  
+  Widget _buildTableCell(String text, String fieldType) {
+    final bool isWeb = kIsWeb;
+    return GestureDetector(
+      onTap: isForExport ? null : () => onFieldTap?.call(fieldType),
+      child: Container(
+        padding: EdgeInsets.all(isWeb ? 4 : 3),
+        height: isForExport ? 30 : (isWeb ? 25 : 22),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: isForExport ? 9 : (isWeb ? 8 : 7),
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildTotalAmount() {
+    final bool isKorean = coverData.template == 'quotation_ko';
+    final bool isWeb = kIsWeb;
+    
+    return Container(
+      padding: EdgeInsets.all(isWeb ? 10 : 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey[400]!),
+      ),
+      child: Row(
+        children: [
+          Text(
+            isKorean ? '총 금액' : 'Total Amount',
+            style: TextStyle(
+              fontSize: isForExport ? 12 : (isWeb ? 11 : 10),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const Spacer(),
+          GestureDetector(
+            onTap: isForExport ? null : () => onFieldTap?.call('totalAmount'),
+            child: Text(
+              isKorean ? '₩ 10,000,000' : '\$ 10,000,000',
+              style: TextStyle(
+                fontSize: isForExport ? 14 : (isWeb ? 12 : 11),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            isKorean ? 'KRW (부가세 별도)' : 'USD (Tax excluded)',
+            style: TextStyle(
+              fontSize: isForExport ? 9 : 8,
+              color: Colors.grey[600],
             ),
           ),
         ],

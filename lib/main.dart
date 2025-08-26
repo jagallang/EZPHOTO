@@ -5157,13 +5157,13 @@ class CoverPageWidget extends StatelessWidget {
     final screenWidth = mediaQuery.size.width;
     final isMobileWeb = kIsWeb && screenWidth < 768;
     
-    // 모바일 웹에서 화면 높이에 따른 동적 크기 조정 - 더 극적인 축소
-    final headerHeight = isMobileWeb ? (screenHeight * 0.04).clamp(25.0, 40.0) : 50.0;
-    final logoSize = isMobileWeb ? (screenWidth * 0.08).clamp(30.0, 45.0) : 60.0;
-    final titleFontSize = isMobileWeb ? (screenWidth * 0.025).clamp(12.0, 16.0) : (isForExport ? 24.0 : 22.0); // 60%로 축소
-    final padding = isMobileWeb ? (screenWidth * 0.015).clamp(6.0, 12.0) : (isWeb ? 20.0 : 16.0);
-    final sectionSpacing = isMobileWeb ? (screenHeight * 0.004).clamp(1.0, 4.0) : 8.0; // 반으로 축소
-    final smallSpacing = isMobileWeb ? (screenHeight * 0.002).clamp(1.0, 2.0) : 4.0; // 반으로 축소
+    // 모바일 웹에서 화면 높이에 따른 극단적 축소 - 한 화면에 모든 내용 표시
+    final headerHeight = isMobileWeb ? (screenHeight * 0.03).clamp(20.0, 30.0) : 50.0;
+    final logoSize = isMobileWeb ? (screenWidth * 0.06).clamp(25.0, 35.0) : 60.0;
+    final titleFontSize = isMobileWeb ? (screenWidth * 0.02).clamp(10.0, 14.0) : (isForExport ? 24.0 : 22.0); // 더 작게
+    final padding = isMobileWeb ? (screenWidth * 0.01).clamp(4.0, 8.0) : (isWeb ? 20.0 : 16.0);
+    final sectionSpacing = isMobileWeb ? (screenHeight * 0.002).clamp(0.5, 2.0) : 8.0; // 매우 작게
+    final smallSpacing = isMobileWeb ? (screenHeight * 0.001).clamp(0.5, 1.0) : 4.0; // 극소 간격
     
     final Widget contentWidget = Padding(
       padding: EdgeInsets.all(padding),
@@ -5241,76 +5241,76 @@ class CoverPageWidget extends StatelessWidget {
             color: Colors.black,
           ),
           
-          // 공급자 정보 (패딩 더 줄임)
+          // 공급자 정보 (패딩 극도로 줄임)
           Container(
             alignment: Alignment.center,
-            padding: EdgeInsets.symmetric(vertical: isMobileWeb ? smallSpacing * 0.2 : smallSpacing * 0.5),
+            padding: EdgeInsets.symmetric(vertical: isMobileWeb ? smallSpacing * 0.1 : smallSpacing * 0.5),
             color: Colors.grey[100],
             child: Text(
               'Supplier Information',
               style: TextStyle(
-                fontSize: isMobileWeb ? 6 : 11,
+                fontSize: isMobileWeb ? 5 : 11,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          SizedBox(height: isMobileWeb ? smallSpacing * 0.2 : smallSpacing * 0.5),
+          SizedBox(height: isMobileWeb ? smallSpacing * 0.1 : smallSpacing * 0.5),
           _buildSupplierInfoResponsive(isMobileWeb),
-          SizedBox(height: isMobileWeb ? sectionSpacing * 0.3 : sectionSpacing * 0.6),
+          SizedBox(height: isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.6),
           
-          // 고객 정보 (패딩 더 줄임)
+          // 고객 정보 (패딩 극도로 줄임)
           Container(
             alignment: Alignment.center,
-            padding: EdgeInsets.symmetric(vertical: isMobileWeb ? smallSpacing * 0.2 : smallSpacing * 0.5),
+            padding: EdgeInsets.symmetric(vertical: isMobileWeb ? smallSpacing * 0.1 : smallSpacing * 0.5),
             color: Colors.grey[100],
             child: Text(
               'Customer Information',
               style: TextStyle(
-                fontSize: isMobileWeb ? 6 : 11,
+                fontSize: isMobileWeb ? 5 : 11,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          SizedBox(height: isMobileWeb ? smallSpacing * 0.2 : smallSpacing * 0.5),
+          SizedBox(height: isMobileWeb ? smallSpacing * 0.1 : smallSpacing * 0.5),
           _buildCustomerInfoResponsive(isMobileWeb),
-          SizedBox(height: isMobileWeb ? sectionSpacing * 0.3 : sectionSpacing * 0.6),
+          SizedBox(height: isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.6),
           
-          // 날짜와 프로젝트 (간격 더 줄임)
+          // 날짜와 프로젝트 (간격 극도로 줄임)
           Row(
             children: [
               _buildDateProjectField('DATE', '', 'date'),
-              SizedBox(width: isMobileWeb ? 6 : 20),
+              SizedBox(width: isMobileWeb ? 3 : 20),
               _buildDateProjectField('PROJECT', '', 'projectName'),
             ],
           ),
-          SizedBox(height: isMobileWeb ? sectionSpacing * 0.2 : sectionSpacing * 0.6),
+          SizedBox(height: isMobileWeb ? sectionSpacing * 0.05 : sectionSpacing * 0.6),
           
-          // 견적 제출 문구 (폰트 크기 더 줄임)
+          // 견적 제출 문구 (폰트 크기 더 줄이고 간격 극소화)
           Center(
             child: Text(
               'We hereby submit the above estimate',
               style: TextStyle(
-                fontSize: isMobileWeb ? 4 : 9,
+                fontSize: isMobileWeb ? 3 : 9,
                 fontStyle: FontStyle.italic,
               ),
             ),
           ),
-          SizedBox(height: isMobileWeb ? sectionSpacing * 0.2 : sectionSpacing * 0.6),
+          SizedBox(height: isMobileWeb ? sectionSpacing * 0.05 : sectionSpacing * 0.6),
           
           // 견적 테이블 (여기에 더 많은 공간 할당)
           _buildEstimateTable(),
-          SizedBox(height: isMobileWeb ? sectionSpacing * 0.3 : sectionSpacing * 0.8),
+          SizedBox(height: isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.8),
           
           // 총 금액
           _buildTotalAmount(),
-          SizedBox(height: isMobileWeb ? smallSpacing * 0.5 : smallSpacing),
+          SizedBox(height: isMobileWeb ? smallSpacing * 0.1 : smallSpacing),
           
-          // 하단 경고 문구 (폰트 크기 더 줄임)
+          // 하단 경고 문구 (폰트 크기 더 줄이고 간격 극소화)
           Center(
             child: Text(
               '*This estimate is based on the time of writing and may vary depending on additional options',
               style: TextStyle(
-                fontSize: isMobileWeb ? 4 : 8,
+                fontSize: isMobileWeb ? 3 : 8,
                 color: Colors.grey[600],
                 fontStyle: FontStyle.italic,
               ),
@@ -5357,8 +5357,8 @@ class CoverPageWidget extends StatelessWidget {
   }
 
   Widget _buildSupplierInfoResponsive(bool isMobileWeb) {
-    final spacing = isMobileWeb ? 3.0 : 15.0;
-    final verticalSpacing = isMobileWeb ? 0.5 : 4.0;
+    final spacing = isMobileWeb ? 1.0 : 15.0; // 더 작게 축소
+    final verticalSpacing = isMobileWeb ? 0.1 : 4.0; // 극도로 축소 (0.2 → 0.1)
     
     return Column(
       children: [
@@ -5412,8 +5412,8 @@ class CoverPageWidget extends StatelessWidget {
   }
 
   Widget _buildCustomerInfoResponsive(bool isMobileWeb) {
-    final spacing = isMobileWeb ? 3.0 : 15.0;
-    final verticalSpacing = isMobileWeb ? 0.8 : 6.0;
+    final spacing = isMobileWeb ? 1.0 : 15.0; // 더 작게 축소
+    final verticalSpacing = isMobileWeb ? 0.15 : 6.0; // 극도로 축소 (0.3 → 0.15)
     
     return Column(
       children: [
@@ -5471,7 +5471,7 @@ class CoverPageWidget extends StatelessWidget {
     return GestureDetector(
       onTap: isForExport ? null : () => onFieldTap?.call(fieldType),
       child: Container(
-        height: 22,
+        height: kIsWeb ? 16 : 22, // 웹에서 높이 더 축소 (22px → 16px)
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: Colors.grey[400]!, width: 0.5)),
         ),
@@ -5595,12 +5595,16 @@ class CoverPageWidget extends StatelessWidget {
   }
   
   Widget _buildTableHeader(String text) {
+    final bool isMobileWeb = kIsWeb; // 웹에서는 모두 모바일로 간주
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 6, horizontal: 3),
+      padding: EdgeInsets.symmetric(
+        vertical: isMobileWeb ? 2 : 6, // 모바일 웹에서 상하 패딩 대폭 축소
+        horizontal: isMobileWeb ? 1 : 3,
+      ),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 8,
+          fontSize: isMobileWeb ? 6 : 8, // 모바일 웹에서 폰트 크기도 축소
           fontWeight: FontWeight.w600,
         ),
         textAlign: TextAlign.center,
@@ -5611,16 +5615,17 @@ class CoverPageWidget extends StatelessWidget {
   Widget _buildTableCell(String text, String fieldType) {
     // 실제 데이터 가져오기
     String actualValue = coverData.tableData[fieldType] ?? '';
+    final bool isMobileWeb = kIsWeb; // 웹에서는 모두 모바일로 간주
     
     return GestureDetector(
       onTap: isForExport ? null : () => onFieldTap?.call(fieldType),
       child: Container(
-        padding: EdgeInsets.all(4),
-        height: 26,
+        padding: EdgeInsets.all(isMobileWeb ? 2 : 4), // 모바일 웹에서 패딩 축소
+        height: isMobileWeb ? 18 : 26, // 모바일 웹에서 높이 대폭 축소
         child: Text(
           actualValue.isEmpty ? '' : actualValue,
           style: TextStyle(
-            fontSize: 8,
+            fontSize: isMobileWeb ? 6 : 8, // 모바일 웹에서 폰트 크기 축소
             color: actualValue.isEmpty ? Colors.grey[400] : Colors.black,
           ),
           textAlign: TextAlign.center,

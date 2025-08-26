@@ -5520,7 +5520,7 @@ class CoverPageWidget extends StatelessWidget {
       child: GestureDetector(
         onTap: isForExport ? null : () => onFieldTap?.call(fieldType),
         child: Container(
-          height: 22,
+          height: kIsWeb ? 16 : 22, // 웹에서 높이 다른 입력필드와 동일하게 축소
           decoration: BoxDecoration(
             border: Border(bottom: BorderSide(color: Colors.grey[400]!, width: 0.5)),
           ),
@@ -5635,8 +5635,10 @@ class CoverPageWidget extends StatelessWidget {
   }
   
   Widget _buildTotalAmount() {
+    final bool isMobileWeb = kIsWeb; // 웹에서 모바일 최적화 적용
+    
     return Container(
-      padding: EdgeInsets.all(10),
+      padding: EdgeInsets.all(isMobileWeb ? 6 : 10), // 모바일 웹에서 패딩 축소
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey[400]!, width: 0.5),
       ),
@@ -5645,16 +5647,20 @@ class CoverPageWidget extends StatelessWidget {
           Text(
             'Total Amount',
             style: TextStyle(
-              fontSize: 11,
+              fontSize: isMobileWeb ? 9 : 11, // 모바일 웹에서 폰트 크기 축소
               fontWeight: FontWeight.bold,
             ),
           ),
-          const Spacer(),
+          SizedBox(width: isMobileWeb ? 8 : 10), // Spacer 대신 고정 간격 사용
           Expanded(
+            flex: isMobileWeb ? 3 : 2, // 모바일 웹에서 입력 영역 더 넓게
             child: GestureDetector(
               onTap: isForExport ? null : () => onFieldTap?.call('totalAmount'),
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobileWeb ? 6 : 8, 
+                  vertical: isMobileWeb ? 2 : 4
+                ), // 모바일 웹에서 패딩 축소
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey[300]!, width: 0.5),
                   borderRadius: BorderRadius.circular(2),
@@ -5662,7 +5668,7 @@ class CoverPageWidget extends StatelessWidget {
                 child: Text(
                   coverData.totalAmount ?? '',
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: isMobileWeb ? 10 : 12, // 모바일 웹에서 폰트 크기 축소
                     fontWeight: FontWeight.bold,
                     color: (coverData.totalAmount?.isEmpty ?? true) ? Colors.grey[400] : Colors.black,
                   ),
@@ -5671,11 +5677,11 @@ class CoverPageWidget extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: isMobileWeb ? 6 : 10), // 간격 축소
           Text(
             'USD (Tax excluded)',
             style: TextStyle(
-              fontSize: 8,
+              fontSize: isMobileWeb ? 6 : 8, // 모바일 웹에서 폰트 크기 축소
               color: Colors.grey[600],
             ),
           ),

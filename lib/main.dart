@@ -1834,7 +1834,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       case 'projectName':
         return '프로젝트명';
       case 'totalAmount':
-        return '총 금액';
+        return 'Total Amount';
       case 'supplierCompany':
         return 'Company';
       case 'supplierEmail':
@@ -5650,13 +5650,24 @@ class CoverPageWidget extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          GestureDetector(
-            onTap: isForExport ? null : () => onFieldTap?.call('totalAmount'),
-            child: Text(
-              '\$ 10,000,000',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+          Expanded(
+            child: GestureDetector(
+              onTap: isForExport ? null : () => onFieldTap?.call('totalAmount'),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!, width: 0.5),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+                child: Text(
+                  coverData.totalAmount ?? '',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: (coverData.totalAmount?.isEmpty ?? true) ? Colors.grey[400] : Colors.black,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
           ),

@@ -4067,9 +4067,14 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           ),
         );
         
-        // 겉표지를 이미지로 캡처 (A4 비율)
+        // 겉표지를 이미지로 캡처 (MediaQuery 컨텍스트 제공)
         final coverBytes = await ScreenshotController().captureFromWidget(
-          coverWidget,
+          MediaQuery(
+            data: MediaQuery.of(context), // 현재 컨텍스트의 MediaQuery 제공
+            child: Material(
+              child: coverWidget, // 완전한 머티리얼 컨텍스트 제공
+            ),
+          ),
           pixelRatio: 3.0, // A4 고해상도 캡처
         );
         

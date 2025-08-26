@@ -140,7 +140,30 @@ firebase deploy
 - **반응형**: 데스크톱/태블릿/모바일 최적화
 - **PWA**: 프로그레시브 웹 앱 지원
 
-## 🆕 최신 업데이트 (v1.2.14)
+## 🆕 최신 업데이트 (v1.2.18)
+
+### 🎯 크리티컬 버그 수정 (v1.2.18)
+- **🖼️ 견적서 회색화면 저장 문제 완전 해결**: MediaQuery 및 Material 컨텍스트 부족으로 인한 captureFromWidget 렌더링 실패 수정
+- **🔧 컨텍스트 최적화**: CoverPageWidget 렌더링 시 필요한 MediaQuery.of(context) 및 Material 위젯 래핑 제공
+- **📷 캡처 메커니즘 개선**: 견적서와 사진 레포트 모두에서 실제 내용이 정상적으로 저장되도록 보장
+
+### 🔍 기술적 세부사항 (v1.2.18)
+```dart
+// 수정 전: 컨텍스트 부족으로 회색화면 생성
+final coverBytes = await ScreenshotController().captureFromWidget(coverWidget);
+
+// 수정 후: 완전한 컨텍스트 제공으로 정상 렌더링
+final coverBytes = await ScreenshotController().captureFromWidget(
+  MediaQuery(
+    data: MediaQuery.of(context), // 디바이스 정보 제공
+    child: Material(child: coverWidget), // Material 컨텍스트 제공
+  ),
+);
+```
+
+---
+
+## 📋 이전 업데이트 (v1.2.14)
 
 ### 🚀 주요 기능 추가
 - **📱 모바일 웹 반응형 레이아웃**: 화면 크기(768px 미만)별 동적 폰트 및 간격 자동 조정
@@ -154,8 +177,7 @@ firebase deploy
 - **📐 정밀 간격 제어**: 섹션별 차별화된 간격 최적화 (패딩, 마진, 폰트 크기)
 - **🎨 반응형 컴포넌트**: 공급자/고객 정보 영역 모바일 전용 간격 적용
 
-### 🐛 크리티컬 버그 수정
-- **🖼️ 모바일 저장 오류 해결**: 견적서/사진보고서 저장 시 회색 화면 문제 완전 해결
+### 🐛 버그 수정 (v1.2.14)
 - **📷 스크린샷 캡처 개선**: SingleChildScrollView 간섭으로 인한 저장 실패 문제 수정
 - **⚖️ 레이아웃 분리**: isForExport 조건 활용으로 미리보기용/저장용 레이아웃 완전 분리
 - **🔧 네비게이션 최적화**: 모바일 웹 하단 버튼이 두 줄로 나오던 문제 해결

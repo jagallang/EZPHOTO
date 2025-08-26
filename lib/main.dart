@@ -511,6 +511,9 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
   // 스크린샷 컨트롤러
   final ScreenshotController _screenshotController = ScreenshotController();
   
+  // 저장 모드 플래그 (저장 시에만 true로 설정)
+  bool isForExport = false;
+  
   final List<ShapeOverlay> shapes = [];
   int? selectedShapeIndex;
   
@@ -4114,11 +4117,12 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         // 페이지 로드 및 상태 업데이트
         setState(() {
           currentPageIndex = pageIndex;
+          isForExport = true; // 저장 모드로 전환
         });
         _loadPageData(pageIndex);
         
         // UI 업데이트를 위한 충분한 대기
-        await Future.delayed(const Duration(milliseconds: 300));
+        await Future.delayed(const Duration(milliseconds: 500));
         
         // 스크린샷 캡처 (고해상도)
         try {
@@ -4194,6 +4198,11 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       });
       _loadPageData(originalCurrentPageIndex);
       
+      // 저장 완료 후 미리보기 모드로 복원
+      setState(() {
+        isForExport = false;
+      });
+      
       // 최종 결과 메시지
       if (mounted) {
         final message = kIsWeb 
@@ -4213,6 +4222,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       setState(() {
         currentPageIndex = originalCurrentPageIndex;
         showCoverInPreview = originalShowCoverInPreview;
+        isForExport = false; // 미리보기 모드로 복원
       });
       _loadPageData(originalCurrentPageIndex);
       
@@ -4348,11 +4358,12 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         // 모든 페이지에 대해 페이지 데이터를 로드
         setState(() {
           currentPageIndex = pageIndex;
+          isForExport = true; // PDF 저장 모드로 전환
         });
         _loadPageData(pageIndex);
         
         // UI 업데이트 완료 대기
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 300));
         
         try {
           // 화면 크기 미리 확인
@@ -4417,6 +4428,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         shapes.addAll(originalShapes);
         // 겉표지 상태 복원
         showCoverInPreview = originalShowCoverInPreview;
+        isForExport = false; // 미리보기 모드로 복원
       });
       _loadPageData(originalCurrentPageIndex);
       

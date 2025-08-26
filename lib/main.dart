@@ -4129,13 +4129,25 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           // 화면 크기 미리 확인
           final isMobileWeb = kIsWeb && MediaQuery.of(context).size.width < 768;
           
-          // 이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 시도
-          final Uint8List? imageBytes = await _screenshotController.capture(
-            delay: Duration(milliseconds: isMobileWeb ? 500 : 200),
+          debugPrint('🔍 Screenshot Debug - 페이지 ${pageIndex + 1}:');
+          debugPrint('  - isForExport: $isForExport');
+          debugPrint('  - isMobileWeb: $isMobileWeb');  
+          debugPrint('  - 화면크기: ${MediaQuery.of(context).size}');
+          debugPrint('  - 템플릿: ${coverPage?.template ?? "없음"}');
+          
+          Uint8List? imageBytes;
+          
+          // 기존 Screenshot 위젯 사용 (원래 로직 복원)
+          debugPrint('🔍 일반 레이아웃 - Screenshot 위젯 사용');
+          
+          imageBytes = await _screenshotController.capture(
+            delay: Duration(milliseconds: isMobileWeb ? 1000 : 500), // delay 증가
             pixelRatio: kIsWeb 
               ? (isMobileWeb ? 2.0 : 4.0) // 모바일 웹: 2.0, 데스크톱 웹: 4.0
               : 5.0, // 모바일 앱: 5.0
           );
+          
+          debugPrint('🔍 Screenshot 결과: ${imageBytes != null ? "${imageBytes.length} bytes" : "null"}');
           
           if (imageBytes != null) {
             // 이미지 저장: 페이지 ${pageIndex + 1} 스크린샷 캡처 성공 (${imageBytes.length} bytes)
@@ -5305,9 +5317,7 @@ class CoverPageWidget extends StatelessWidget {
 
     return Container(
       color: Colors.white,
-      child: (isMobileWeb && !isForExport) 
-          ? SingleChildScrollView(child: contentWidget) 
-          : contentWidget,
+      child: contentWidget, // 스크린샷 캡처를 위해 조건부 로직 제거
     );
   }
   

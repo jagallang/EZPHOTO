@@ -10,6 +10,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'presentation/widgets/dialogs/photo_source_dialog.dart';
 
 // Conditional import for web/mobile
 import 'web_helper.dart' if (dart.library.io) 'mobile_helper.dart' as platform_helper;
@@ -399,6 +400,10 @@ class CoverPageData {
   String? customerAddress;
   String? customerTel;
   String? customerEmail;
+  String? estNo;
+  
+  // 견적서 테이블 데이터 (10줄 x 6컬럼)
+  Map<String, String> tableData = {};
   
   CoverPageData({
     this.template = 'none',
@@ -424,6 +429,7 @@ class CoverPageData {
     this.customerAddress,
     this.customerTel,
     this.customerEmail,
+    this.estNo,
   }) : textLines = textLines ?? List.filled(10, '');
 }
 
@@ -1642,9 +1648,24 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       case 'customerEmail':
         currentValue = coverPage?.customerEmail ?? '';
         break;
+      case 'estNo':
+        currentValue = coverPage?.estNo ?? '';
+        break;
+      case 'logo':
+        // 로고는 이미지 선택 다이얼로그를 표시
+        _handleLogoSelection();
+        return;
       case 'textLine':
         if (textLineIndex != null && textLineIndex < (coverPage?.textLines.length ?? 0)) {
           currentValue = coverPage!.textLines[textLineIndex];
+        }
+        break;
+      default:
+        // 테이블 셀 데이터 처리
+        if (fieldType.startsWith('description_') || fieldType.startsWith('specification_') ||
+            fieldType.startsWith('unit_') || fieldType.startsWith('qty_') ||
+            fieldType.startsWith('price_') || fieldType.startsWith('remarks_')) {
+          currentValue = coverPage?.tableData[fieldType] ?? '';
         }
         break;
     }
@@ -1715,9 +1736,20 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       case 'customerEmail':
         coverPage!.customerEmail = newValue;
         break;
+      case 'estNo':
+        coverPage!.estNo = newValue;
+        break;
       case 'textLine':
         if (editingTextLineIndex >= 0 && editingTextLineIndex < coverPage!.textLines.length) {
           coverPage!.textLines[editingTextLineIndex] = newValue;
+        }
+        break;
+      default:
+        // 테이블 셀 데이터 저장
+        if (editingFieldType.startsWith('description_') || editingFieldType.startsWith('specification_') ||
+            editingFieldType.startsWith('unit_') || editingFieldType.startsWith('qty_') ||
+            editingFieldType.startsWith('price_') || editingFieldType.startsWith('remarks_')) {
+          coverPage!.tableData[editingFieldType] = newValue;
         }
         break;
     }
@@ -1735,6 +1767,52 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       editingFieldType = '';
       editingTextLineIndex = -1;
     });
+  }
+
+  void _handleLogoSelection() async {
+    try {
+      await PhotoSourceDialog.show(
+        context,
+        (ImageSource source) async {
+          final ImagePicker picker = ImagePicker();
+          final XFile? image = await picker.pickImage(
+            source: source,
+            maxWidth: 300,
+            maxHeight: 300,
+            imageQuality: 85,
+          );
+
+          if (image != null) {
+            final bytes = await image.readAsBytes();
+            final base64String = base64Encode(bytes);
+            
+            setState(() {
+              coverPage?.logoImage = base64String;
+            });
+            
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('✅ 로고 이미지가 업로드되었습니다!'),
+                  duration: Duration(seconds: 2),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          }
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('이미지 선택 중 오류가 발생했습니다: $e'),
+            duration: const Duration(seconds: 3),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   String _getFieldLabel(String fieldType) {
@@ -1757,9 +1835,41 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         return '프로젝트명';
       case 'totalAmount':
         return '총 금액';
+      case 'supplierCompany':
+        return 'Company';
+      case 'supplierEmail':
+        return 'Email';
+      case 'supplierContact':
+        return 'Contact';
+      case 'supplierTel':
+        return 'Tel';
+      case 'customerCompany':
+        return 'Company';
+      case 'customerAddress':
+        return 'Address';
+      case 'customerTel':
+        return 'Tel';
+      case 'customerEmail':
+        return 'Email';
+      case 'estNo':
+        return 'Est. No.';
       case 'textLine':
         return '텍스트';
       default:
+        // 테이블 셀 필드명 처리
+        if (fieldType.startsWith('description_')) {
+          return 'Description';
+        } else if (fieldType.startsWith('specification_')) {
+          return 'Specification';
+        } else if (fieldType.startsWith('unit_')) {
+          return 'Unit';
+        } else if (fieldType.startsWith('qty_')) {
+          return 'Qty';
+        } else if (fieldType.startsWith('price_')) {
+          return 'Price';
+        } else if (fieldType.startsWith('remarks_')) {
+          return 'Remarks';
+        }
         return '내용';
     }
   }
@@ -5118,10 +5228,6 @@ class CoverPageWidget extends StatelessWidget {
   
   Widget _buildQuotationTemplate() {
     final bool isWeb = kIsWeb;
-    final bool isMobile = !isWeb;
-    
-    // 한국어 버전인지 확인 (템플릿 이름으로 구분)
-    final bool isKorean = coverData.template == 'quotation_ko';
     
     return Container(
       color: Colors.white,
@@ -5144,13 +5250,23 @@ class CoverPageWidget extends StatelessWidget {
                         border: Border.all(color: Colors.grey[300]!),
                         borderRadius: BorderRadius.circular(2),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.add_a_photo, color: Colors.grey[400], size: 16),
-                          Text('LOGO', style: TextStyle(color: Colors.grey[400], fontSize: 8)),
-                        ],
-                      ),
+                      child: coverData.logoImage != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(2),
+                              child: Image.memory(
+                                base64Decode(coverData.logoImage!),
+                                fit: BoxFit.cover,
+                                width: 60,
+                                height: 50,
+                              ),
+                            )
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add_a_photo, color: Colors.grey[400], size: 16),
+                                Text('LOGO', style: TextStyle(color: Colors.grey[400], fontSize: 8)),
+                              ],
+                            ),
                     ),
                   ),
                   // 중앙 타이틀
@@ -5163,17 +5279,20 @@ class CoverPageWidget extends StatelessWidget {
                     ),
                   ),
                   // 우측 번호 영역
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                    child: Text(
-                      'Est. No.',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey[600],
+                  GestureDetector(
+                    onTap: isForExport ? null : () => onFieldTap?.call('estNo'),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      child: Text(
+                        coverData.estNo ?? 'Est. No.',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey[600],
+                        ),
                       ),
                     ),
                   ),
@@ -5495,15 +5614,19 @@ class CoverPageWidget extends StatelessWidget {
   }
   
   Widget _buildTableCell(String text, String fieldType) {
+    // 실제 데이터 가져오기
+    String actualValue = coverData.tableData[fieldType] ?? '';
+    
     return GestureDetector(
       onTap: isForExport ? null : () => onFieldTap?.call(fieldType),
       child: Container(
         padding: EdgeInsets.all(4),
         height: 26,
         child: Text(
-          text,
+          actualValue.isEmpty ? '' : actualValue,
           style: TextStyle(
             fontSize: 8,
+            color: actualValue.isEmpty ? Colors.grey[400] : Colors.black,
           ),
           textAlign: TextAlign.center,
         ),

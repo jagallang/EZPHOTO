@@ -5362,17 +5362,19 @@ class CoverPageWidget extends StatelessWidget {
     final screenHeight = mediaQuery.size.height;
     final screenWidth = mediaQuery.size.width;
     final isMobileWeb = kIsWeb && screenWidth < 768;
+    // 모바일 앱도 모바일 웹과 동일한 작은 폰트 크기 적용
+    final isMobileSize = isMobileWeb || !kIsWeb;
     
     // A4 비율 (210:297) 고려 - 수출 모드에서는 A4에 최적화된 크기 사용
     final isA4Export = isForExport;
     
-    // 수출 모드일 때는 A4 크기에 맞춘 고정 크기 사용, 그렇지 않으면 반응형
-    final headerHeight = isA4Export ? 60.0 : (isMobileWeb ? (screenHeight * 0.05).clamp(30.0, 45.0) : 50.0);
-    final logoSize = isA4Export ? 80.0 : (isMobileWeb ? (screenWidth * 0.08).clamp(35.0, 50.0) : 60.0);
-    final titleFontSize = isA4Export ? 28.0 : (isMobileWeb ? (screenWidth * 0.025).clamp(14.0, 18.0) : 22.0);
-    final padding = isA4Export ? 24.0 : (isMobileWeb ? (screenWidth * 0.015).clamp(8.0, 12.0) : (isWeb ? 20.0 : 16.0));
-    final sectionSpacing = isA4Export ? 12.0 : (isMobileWeb ? (screenHeight * 0.008).clamp(4.0, 8.0) : 8.0);
-    final smallSpacing = isA4Export ? 6.0 : (isMobileWeb ? (screenHeight * 0.004).clamp(2.0, 4.0) : 4.0);
+    // 수출 모드일 때는 A4 크기에 맞춘 고정 크기 사용, 그렇지 않으면 반응형 (모바일 앱 오버플로우 해결을 위해 크기 축소)
+    final headerHeight = isA4Export ? 60.0 : (isMobileSize ? (screenHeight * 0.03).clamp(20.0, 30.0) : 50.0);
+    final logoSize = isA4Export ? 80.0 : (isMobileSize ? (screenWidth * 0.06).clamp(25.0, 35.0) : 60.0);
+    final titleFontSize = isA4Export ? 28.0 : (isMobileSize ? (screenWidth * 0.020).clamp(12.0, 16.0) : 22.0);
+    final padding = isA4Export ? 24.0 : (isMobileSize ? (screenWidth * 0.010).clamp(6.0, 10.0) : (isWeb ? 20.0 : 16.0));
+    final sectionSpacing = isA4Export ? 12.0 : (isMobileSize ? (screenHeight * 0.004).clamp(2.0, 4.0) : 8.0);
+    final smallSpacing = isA4Export ? 6.0 : (isMobileSize ? (screenHeight * 0.002).clamp(1.0, 2.0) : 4.0);
     
     // A4 비율 (210:297) 계산 - 수출 모드에서만 적용
     final a4Width = isA4Export ? 794.0 : null; // A4 너비 (72 DPI 기준)
@@ -5415,8 +5417,8 @@ class CoverPageWidget extends StatelessWidget {
                       : Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.add_a_photo, color: Colors.grey[400], size: isMobileWeb ? 12 : 16),
-                            Text('LOGO', style: TextStyle(color: Colors.grey[400], fontSize: isA4Export ? 10 : (isMobileWeb ? 8 : 8))),
+                            Icon(Icons.add_a_photo, color: Colors.grey[400], size: isMobileSize ? 12 : 16),
+                            Text('LOGO', style: TextStyle(color: Colors.grey[400], fontSize: isA4Export ? 10 : (isMobileSize ? 8 : 8))),
                           ],
                         ),
                 ),
@@ -5427,14 +5429,14 @@ class CoverPageWidget extends StatelessWidget {
                 style: TextStyle(
                   fontSize: titleFontSize,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: isMobileWeb ? 1 : 3,
+                  letterSpacing: isMobileSize ? 1 : 3,
                 ),
               ),
               // 우측 번호 영역 (크기 줄임)
               GestureDetector(
                 onTap: isForExport ? null : () => onFieldTap?.call('estNo'),
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: isMobileWeb ? 6 : 10, vertical: isMobileWeb ? 3 : 5),
+                  padding: EdgeInsets.symmetric(horizontal: isMobileSize ? 6 : 10, vertical: isMobileSize ? 3 : 5),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey[300]!),
                     borderRadius: BorderRadius.circular(2),
@@ -5442,7 +5444,7 @@ class CoverPageWidget extends StatelessWidget {
                   child: Text(
                     coverData.estNo ?? 'Est. No.',
                     style: TextStyle(
-                      fontSize: isA4Export ? 12 : (isMobileWeb ? 8 : 10),
+                      fontSize: isA4Export ? 12 : (isMobileSize ? 8 : 10),
                       color: Colors.grey[600],
                     ),
                   ),
@@ -5453,68 +5455,68 @@ class CoverPageWidget extends StatelessWidget {
           
           // 구분선 (높이 줄임)
           Container(
-            margin: EdgeInsets.symmetric(vertical: smallSpacing),
-            height: isMobileWeb ? 1 : 2,
+            margin: EdgeInsets.symmetric(vertical: isMobileSize ? smallSpacing * 0.5 : smallSpacing),
+            height: isMobileSize ? 0.5 : 2,
             color: Colors.black,
           ),
           
           // 공급자 정보 (패딩 극도로 줄임)
           Container(
             alignment: Alignment.center,
-            padding: EdgeInsets.symmetric(vertical: isMobileWeb ? smallSpacing * 0.1 : smallSpacing * 0.5),
+            padding: EdgeInsets.symmetric(vertical: isMobileSize ? smallSpacing * 0.05 : smallSpacing * 0.5),
             color: Colors.grey[100],
             child: Text(
               'Supplier Information',
               style: TextStyle(
-                fontSize: isA4Export ? (isMobileWeb ? 10 : 14) : (isMobileWeb ? 6 : 11),
+                fontSize: isA4Export ? (isMobileSize ? 10 : 14) : (isMobileSize ? 6 : 11),
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          SizedBox(height: isMobileWeb ? smallSpacing * 0.1 : smallSpacing * 0.5),
-          _buildSupplierInfoResponsive(isMobileWeb),
-          SizedBox(height: isA4Export ? sectionSpacing * 0.3 : (isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.4)),
+          SizedBox(height: isMobileSize ? smallSpacing * 0.05 : smallSpacing * 0.5),
+          _buildSupplierInfoResponsive(isMobileSize),
+          SizedBox(height: isA4Export ? sectionSpacing * 0.3 : (isMobileSize ? sectionSpacing * 0.05 : sectionSpacing * 0.4)),
           
           // 고객 정보 (패딩 극도로 줄임)
           Container(
             alignment: Alignment.center,
-            padding: EdgeInsets.symmetric(vertical: isMobileWeb ? smallSpacing * 0.1 : smallSpacing * 0.5),
+            padding: EdgeInsets.symmetric(vertical: isMobileSize ? smallSpacing * 0.05 : smallSpacing * 0.5),
             color: Colors.grey[100],
             child: Text(
               'Customer Information',
               style: TextStyle(
-                fontSize: isA4Export ? (isMobileWeb ? 10 : 14) : (isMobileWeb ? 6 : 11),
+                fontSize: isA4Export ? (isMobileSize ? 10 : 14) : (isMobileSize ? 6 : 11),
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          SizedBox(height: isMobileWeb ? smallSpacing * 0.1 : smallSpacing * 0.5),
-          _buildCustomerInfoResponsive(isMobileWeb),
-          SizedBox(height: isA4Export ? sectionSpacing * 0.3 : (isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.4)),
+          SizedBox(height: isMobileSize ? smallSpacing * 0.05 : smallSpacing * 0.5),
+          _buildCustomerInfoResponsive(isMobileSize),
+          SizedBox(height: isA4Export ? sectionSpacing * 0.3 : (isMobileSize ? sectionSpacing * 0.05 : sectionSpacing * 0.4)),
           
           // 날짜와 프로젝트 (간격 극도로 줄임)
           Row(
             children: [
               _buildDateProjectField('DATE', '', 'date'),
-              SizedBox(width: isMobileWeb ? 3 : 20),
+              SizedBox(width: isMobileSize ? 3 : 20),
               _buildDateProjectField('PROJECT', '', 'projectName'),
             ],
           ),
-          SizedBox(height: isA4Export ? sectionSpacing * 0.3 : (isMobileWeb ? sectionSpacing * 0.05 : sectionSpacing * 0.4)),
+          SizedBox(height: isA4Export ? sectionSpacing * 0.3 : (isMobileSize ? sectionSpacing * 0.02 : sectionSpacing * 0.4)),
           
           
           // 견적 테이블 (여기에 더 많은 공간 할당)
-          _buildEstimateTable(isA4Export, isMobileWeb),
-          SizedBox(height: isA4Export ? sectionSpacing * 0.2 : (isMobileWeb ? sectionSpacing * 0.05 : sectionSpacing * 0.4)),
+          _buildEstimateTable(isA4Export, isMobileSize),
+          SizedBox(height: isA4Export ? sectionSpacing * 0.2 : (isMobileSize ? sectionSpacing * 0.02 : sectionSpacing * 0.4)),
           
           // 총 금액
-          _buildTotalAmount(isA4Export, isMobileWeb),
-          SizedBox(height: isA4Export ? smallSpacing * 0.3 : (isMobileWeb ? smallSpacing * 0.05 : smallSpacing * 0.6)),
+          _buildTotalAmount(isA4Export, isMobileSize),
+          SizedBox(height: isA4Export ? smallSpacing * 0.3 : (isMobileSize ? smallSpacing * 0.02 : smallSpacing * 0.6)),
           
           
           // 추가 안내 문구 (한글/영문)
           Container(
-            padding: EdgeInsets.all(isA4Export ? 12 : (isMobileWeb ? 3 : 6)),
+            padding: EdgeInsets.all(isA4Export ? 12 : (isMobileSize ? 2 : 6)),
             decoration: BoxDecoration(
               color: Colors.grey[50],
               border: Border.all(color: Colors.grey[300]!, width: 0.5),
@@ -5526,34 +5528,34 @@ class CoverPageWidget extends StatelessWidget {
                 Text(
                   'IMPORTANT NOTICE / 중요 안내사항',
                   style: TextStyle(
-                    fontSize: isA4Export ? (isMobileWeb ? 8 : 12) : (isMobileWeb ? 6 : 7),
+                    fontSize: isA4Export ? (isMobileSize ? 8 : 12) : (isMobileSize ? 6 : 7),
                     fontWeight: FontWeight.bold,
                     color: Colors.red[700],
                   ),
                 ),
-                SizedBox(height: isMobileWeb ? 1 : 2),
+                SizedBox(height: isMobileSize ? 1 : 2),
                 Text(
                   '• Material costs may vary depending on suppliers or market conditions.\n자재 비용은 공급업체나 시장 상황에 따라 달라질 수 있습니다.',
                   style: TextStyle(
-                    fontSize: isA4Export ? (isMobileWeb ? 7 : 10) : (isMobileWeb ? 5 : 6),
+                    fontSize: isA4Export ? (isMobileSize ? 7 : 10) : (isMobileSize ? 5 : 6),
                     color: Colors.grey[700],
                     height: 1.2,
                   ),
                 ),
-                SizedBox(height: isMobileWeb ? 0.5 : 1),
+                SizedBox(height: isMobileSize ? 0.5 : 1),
                 Text(
                   '• The price includes all materials and equipment usage fees required for the project. (No additional costs will be charged.)\n프로젝트에 필요한 모든 자재와 장비 사용 비용이 포함된 가격이며, 별도의 추가 비용은 청구되지 않습니다.',
                   style: TextStyle(
-                    fontSize: isA4Export ? (isMobileWeb ? 7 : 10) : (isMobileWeb ? 5 : 6),
+                    fontSize: isA4Export ? (isMobileSize ? 7 : 10) : (isMobileSize ? 5 : 6),
                     color: Colors.grey[700],
                     height: 1.2,
                   ),
                 ),
-                SizedBox(height: isMobileWeb ? 0.5 : 1),
+                SizedBox(height: isMobileSize ? 0.5 : 1),
                 Text(
                   '• If additional work or repairs are required during the project, extra material costs and labor charges will be added with customer consent.\n프로젝트 진행 중 추가 작업이나 수리가 필요한 경우, 고객의 동의하에 자재비 및 인건비가 추가로 청구됩니다.',
                   style: TextStyle(
-                    fontSize: isA4Export ? (isMobileWeb ? 7 : 10) : (isMobileWeb ? 5 : 6),
+                    fontSize: isA4Export ? (isMobileSize ? 7 : 10) : (isMobileSize ? 5 : 6),
                     color: Colors.grey[700],
                     height: 1.2,
                   ),
@@ -5602,9 +5604,9 @@ class CoverPageWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildSupplierInfoResponsive(bool isMobileWeb) {
-    final spacing = isMobileWeb ? 1.0 : 15.0; // 더 작게 축소
-    final verticalSpacing = isMobileWeb ? 0.1 : 4.0; // 극도로 축소 (0.2 → 0.1)
+  Widget _buildSupplierInfoResponsive(bool isMobileSize) {
+    final spacing = isMobileSize ? 1.0 : 15.0; // 더 작게 축소
+    final verticalSpacing = isMobileSize ? 0.05 : 4.0; // 모바일 앱 오버플로우 해결을 위해 더 축소 (0.1 → 0.05)
     
     return Column(
       children: [
@@ -5657,9 +5659,9 @@ class CoverPageWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildCustomerInfoResponsive(bool isMobileWeb) {
-    final spacing = isMobileWeb ? 1.0 : 15.0; // 더 작게 축소
-    final verticalSpacing = isMobileWeb ? 0.15 : 6.0; // 극도로 축소 (0.3 → 0.15)
+  Widget _buildCustomerInfoResponsive(bool isMobileSize) {
+    final spacing = isMobileSize ? 1.0 : 15.0; // 더 작게 축소
+    final verticalSpacing = isMobileSize ? 0.05 : 6.0; // 모바일 앱 오버플로우 해결을 위해 더 축소 (0.15 → 0.05)
     
     return Column(
       children: [
@@ -5797,7 +5799,7 @@ class CoverPageWidget extends StatelessWidget {
     );
   }
   
-  Widget _buildEstimateTable(bool isA4Export, bool isMobileWeb) {
+  Widget _buildEstimateTable(bool isA4Export, bool isMobileSize) {
     final bool isWeb = kIsWeb;
     final int rowCount = isWeb ? 10 : 8; // 이미지와 같이 10줄
     
@@ -5816,40 +5818,40 @@ class CoverPageWidget extends StatelessWidget {
         TableRow(
           decoration: BoxDecoration(color: Colors.grey[200]),
           children: [
-            _buildTableHeader('Description', isA4Export, isMobileWeb),
-            _buildTableHeader('Specification', isA4Export, isMobileWeb),
-            _buildTableHeader('Unit', isA4Export, isMobileWeb),
-            _buildTableHeader('Qty', isA4Export, isMobileWeb),
-            _buildTableHeader('Price', isA4Export, isMobileWeb),
-            _buildTableHeader('Remarks', isA4Export, isMobileWeb),
+            _buildTableHeader('Description', isA4Export, isMobileSize),
+            _buildTableHeader('Specification', isA4Export, isMobileSize),
+            _buildTableHeader('Unit', isA4Export, isMobileSize),
+            _buildTableHeader('Qty', isA4Export, isMobileSize),
+            _buildTableHeader('Price', isA4Export, isMobileSize),
+            _buildTableHeader('Remarks', isA4Export, isMobileSize),
           ],
         ),
         // 테이블 행들
         for (int i = 0; i < rowCount; i++)
           TableRow(
             children: [
-              _buildTableCell('', 'description_$i', isA4Export, isMobileWeb),
-              _buildTableCell('', 'specification_$i', isA4Export, isMobileWeb),
-              _buildTableCell('', 'unit_$i', isA4Export, isMobileWeb),
-              _buildTableCell('', 'qty_$i', isA4Export, isMobileWeb),
-              _buildTableCell('', 'price_$i', isA4Export, isMobileWeb),
-              _buildTableCell('', 'remarks_$i', isA4Export, isMobileWeb),
+              _buildTableCell('', 'description_$i', isA4Export, isMobileSize),
+              _buildTableCell('', 'specification_$i', isA4Export, isMobileSize),
+              _buildTableCell('', 'unit_$i', isA4Export, isMobileSize),
+              _buildTableCell('', 'qty_$i', isA4Export, isMobileSize),
+              _buildTableCell('', 'price_$i', isA4Export, isMobileSize),
+              _buildTableCell('', 'remarks_$i', isA4Export, isMobileSize),
             ],
           ),
       ],
     );
   }
   
-  Widget _buildTableHeader(String text, bool isA4Export, bool isMobileWeb) {
+  Widget _buildTableHeader(String text, bool isA4Export, bool isMobileSize) {
     return Container(
       padding: EdgeInsets.symmetric(
-        vertical: isA4Export ? 6 : (isMobileWeb ? 2 : 4), // A4 수출시 패딩 줄임
-        horizontal: isA4Export ? 6 : (isMobileWeb ? 2 : 3),
+        vertical: isA4Export ? 6 : (isMobileSize ? 2 : 4), // A4 수출시 패딩 줄임
+        horizontal: isA4Export ? 6 : (isMobileSize ? 2 : 3),
       ),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: isA4Export ? (isMobileWeb ? 8 : 12) : (isMobileWeb ? 6 : 8), // A4 수출 모바일웹 조건 적용
+          fontSize: isA4Export ? (isMobileSize ? 8 : 12) : (isMobileSize ? 6 : 8), // A4 수출 모바일웹 조건 적용
           fontWeight: FontWeight.w600,
         ),
         textAlign: TextAlign.center,
@@ -5857,19 +5859,19 @@ class CoverPageWidget extends StatelessWidget {
     );
   }
   
-  Widget _buildTableCell(String text, String fieldType, bool isA4Export, bool isMobileWeb) {
+  Widget _buildTableCell(String text, String fieldType, bool isA4Export, bool isMobileSize) {
     // 실제 데이터 가져오기
     String actualValue = coverData.tableData[fieldType] ?? '';
     
     return GestureDetector(
       onTap: isForExport ? null : () => onFieldTap?.call(fieldType),
       child: Container(
-        padding: EdgeInsets.all(isA4Export ? 6 : (isMobileWeb ? 2 : 3)), // A4 수출시 패딩 줄임
-        height: isA4Export ? 30 : (isMobileWeb ? 20 : 24), // A4 수출시 높이 줄임
+        padding: EdgeInsets.all(isA4Export ? 6 : (isMobileSize ? 2 : 3)), // A4 수출시 패딩 줄임
+        height: isA4Export ? 30 : (isMobileSize ? 20 : 24), // A4 수출시 높이 줄임
         child: Text(
           actualValue.isEmpty ? '' : actualValue,
           style: TextStyle(
-            fontSize: isA4Export ? (isMobileWeb ? 8 : 12) : (isMobileWeb ? 6 : 8), // A4 수출 모바일웹 조건 적용
+            fontSize: isA4Export ? (isMobileSize ? 8 : 12) : (isMobileSize ? 6 : 8), // A4 수출 모바일웹 조건 적용
             color: actualValue.isEmpty ? Colors.grey[400] : Colors.black,
           ),
           textAlign: TextAlign.center,
@@ -5878,10 +5880,10 @@ class CoverPageWidget extends StatelessWidget {
     );
   }
   
-  Widget _buildTotalAmount(bool isA4Export, bool isMobileWeb) {
+  Widget _buildTotalAmount(bool isA4Export, bool isMobileSize) {
     
     return Container(
-      padding: EdgeInsets.all(isA4Export ? 12 : (isMobileWeb ? 6 : 8)), // A4 수출시 패딩 줄임
+      padding: EdgeInsets.all(isA4Export ? 12 : (isMobileSize ? 6 : 8)), // A4 수출시 패딩 줄임
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey[400]!, width: 0.5),
       ),
@@ -5890,19 +5892,19 @@ class CoverPageWidget extends StatelessWidget {
           Text(
             'Total Amount',
             style: TextStyle(
-              fontSize: isA4Export ? (isMobileWeb ? 12 : 16) : (isMobileWeb ? 9 : 11), // A4 수출 모바일웹 조건 적용
+              fontSize: isA4Export ? (isMobileSize ? 12 : 16) : (isMobileSize ? 9 : 11), // A4 수출 모바일웹 조건 적용
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(width: isMobileWeb ? 8 : 10), // Spacer 대신 고정 간격 사용
+          SizedBox(width: isMobileSize ? 8 : 10), // Spacer 대신 고정 간격 사용
           Expanded(
-            flex: isMobileWeb ? 3 : 2, // 모바일 웹에서 입력 영역 더 넓게
+            flex: isMobileSize ? 3 : 2, // 모바일 웹에서 입력 영역 더 넓게
             child: GestureDetector(
               onTap: isForExport ? null : () => onFieldTap?.call('totalAmount'),
               child: Container(
                 padding: EdgeInsets.symmetric(
-                  horizontal: isMobileWeb ? 6 : 8, 
-                  vertical: isMobileWeb ? 2 : 4
+                  horizontal: isMobileSize ? 6 : 8, 
+                  vertical: isMobileSize ? 2 : 4
                 ), // 모바일 웹에서 패딩 축소
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey[300]!, width: 0.5),
@@ -5911,7 +5913,7 @@ class CoverPageWidget extends StatelessWidget {
                 child: Text(
                   coverData.totalAmount ?? '',
                   style: TextStyle(
-                    fontSize: isA4Export ? (isMobileWeb ? 14 : 18) : (isMobileWeb ? 10 : 12), // A4 수출 모바일웹 조건 적용
+                    fontSize: isA4Export ? (isMobileSize ? 14 : 18) : (isMobileSize ? 10 : 12), // A4 수출 모바일웹 조건 적용
                     fontWeight: FontWeight.bold,
                     color: (coverData.totalAmount?.isEmpty ?? true) ? Colors.grey[400] : Colors.black,
                   ),
@@ -5920,11 +5922,11 @@ class CoverPageWidget extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(width: isMobileWeb ? 6 : 10), // 간격 축소
+          SizedBox(width: isMobileSize ? 6 : 10), // 간격 축소
           Text(
             'USD (Tax excluded)',
             style: TextStyle(
-              fontSize: isA4Export ? (isMobileWeb ? 8 : 12) : (isMobileWeb ? 6 : 8), // A4 수출 모바일웹 조건 적용
+              fontSize: isA4Export ? (isMobileSize ? 8 : 12) : (isMobileSize ? 6 : 8), // A4 수출 모바일웹 조건 적용
               color: Colors.grey[600],
             ),
           ),

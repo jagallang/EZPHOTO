@@ -5296,38 +5296,15 @@ class CoverPageWidget extends StatelessWidget {
           ),
           SizedBox(height: isA4Export ? sectionSpacing * 0.3 : (isMobileWeb ? sectionSpacing * 0.05 : sectionSpacing * 0.4)),
           
-          // 견적 제출 문구 (폰트 크기 더 줄이고 간격 극소화)
-          Center(
-            child: Text(
-              'We hereby submit the above estimate',
-              style: TextStyle(
-                fontSize: isA4Export ? 12 : (isMobileWeb ? 6 : 9),
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ),
-          SizedBox(height: isA4Export ? sectionSpacing * 0.3 : (isMobileWeb ? sectionSpacing * 0.05 : sectionSpacing * 0.4)),
           
           // 견적 테이블 (여기에 더 많은 공간 할당)
           _buildEstimateTable(isA4Export, isMobileWeb),
-          SizedBox(height: isA4Export ? sectionSpacing * 0.4 : (isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.6)),
+          SizedBox(height: isA4Export ? sectionSpacing * 0.2 : (isMobileWeb ? sectionSpacing * 0.05 : sectionSpacing * 0.4)),
           
           // 총 금액
           _buildTotalAmount(isA4Export, isMobileWeb),
-          SizedBox(height: isA4Export ? smallSpacing * 0.5 : (isMobileWeb ? smallSpacing * 0.1 : smallSpacing * 0.8)),
+          SizedBox(height: isA4Export ? smallSpacing * 0.3 : (isMobileWeb ? smallSpacing * 0.05 : smallSpacing * 0.6)),
           
-          // 기존 경고 문구
-          Center(
-            child: Text(
-              '*This estimate is based on the time of writing and may vary depending on additional options',
-              style: TextStyle(
-                fontSize: isA4Export ? 10 : (isMobileWeb ? 6 : 8),
-                color: Colors.grey[600],
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ),
-          SizedBox(height: isA4Export ? sectionSpacing * 0.2 : (isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.25)),
           
           // 추가 안내 문구 (한글/영문)
           Container(
@@ -5660,7 +5637,7 @@ class CoverPageWidget extends StatelessWidget {
   Widget _buildTableHeader(String text, bool isA4Export, bool isMobileWeb) {
     return Container(
       padding: EdgeInsets.symmetric(
-        vertical: isA4Export ? 8 : (isMobileWeb ? 3 : 6), // A4 수출시 패딩 증가
+        vertical: isA4Export ? 6 : (isMobileWeb ? 2 : 4), // A4 수출시 패딩 줄임
         horizontal: isA4Export ? 6 : (isMobileWeb ? 2 : 3),
       ),
       child: Text(
@@ -5681,8 +5658,8 @@ class CoverPageWidget extends StatelessWidget {
     return GestureDetector(
       onTap: isForExport ? null : () => onFieldTap?.call(fieldType),
       child: Container(
-        padding: EdgeInsets.all(isA4Export ? 8 : (isMobileWeb ? 3 : 4)), // A4 수출시 패딩 증가
-        height: isA4Export ? 35 : (isMobileWeb ? 22 : 26), // A4 수출시 높이 증가
+        padding: EdgeInsets.all(isA4Export ? 6 : (isMobileWeb ? 2 : 3)), // A4 수출시 패딩 줄임
+        height: isA4Export ? 30 : (isMobileWeb ? 20 : 24), // A4 수출시 높이 줄임
         child: Text(
           actualValue.isEmpty ? '' : actualValue,
           style: TextStyle(
@@ -5698,7 +5675,7 @@ class CoverPageWidget extends StatelessWidget {
   Widget _buildTotalAmount(bool isA4Export, bool isMobileWeb) {
     
     return Container(
-      padding: EdgeInsets.all(isA4Export ? 16 : (isMobileWeb ? 8 : 10)), // A4 수출시 패딩 증가
+      padding: EdgeInsets.all(isA4Export ? 12 : (isMobileWeb ? 6 : 8)), // A4 수출시 패딩 줄임
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey[400]!, width: 0.5),
       ),

@@ -514,6 +514,9 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
   // 저장 모드 플래그 (저장 시에만 true로 설정)
   bool isForExport = false;
   
+  // 모바일 웹 감지 플래그 (전역적으로 사용)
+  bool get isMobileWeb => kIsWeb && MediaQuery.of(context).size.width < 768;
+  
   final List<ShapeOverlay> shapes = [];
   int? selectedShapeIndex;
   
@@ -2848,9 +2851,17 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                   final screenWidth = constraints.maxWidth;
                   final screenHeight = constraints.maxHeight;
                   
-                  // 여백을 화면 크기에 비례하여 설정 - 좌우 여백 늘림
-                  final horizontalMargin = (screenWidth * 0.08).clamp(16.0, 40.0);
-                  final verticalMargin = (screenHeight * 0.01).clamp(4.0, 12.0);
+                  // 여백을 화면 크기에 비례하여 설정 - 내보내기 시 여백 축소  
+                  final horizontalMargin = (isForExport && isMobileWeb) 
+                    ? (screenWidth * 0.02).clamp(4.0, 10.0) // 모바일웹 내보내기 시 매우 축소
+                    : isForExport 
+                      ? (screenWidth * 0.04).clamp(8.0, 20.0) // 일반 내보내기 시 여백 축소 
+                      : (screenWidth * 0.08).clamp(16.0, 40.0); // 일반 여백
+                  final verticalMargin = (isForExport && isMobileWeb) 
+                    ? (screenHeight * 0.002).clamp(1.0, 3.0) // 모바일웹 내보내기 시 매우 축소 
+                    : isForExport 
+                      ? (screenHeight * 0.005).clamp(2.0, 6.0) // 일반 내보내기 시 여백 축소 
+                      : (screenHeight * 0.01).clamp(4.0, 12.0); // 일반 여백
                   
                   // 최소 사용 가능한 공간 보장
                   final availableWidth = (screenWidth - (horizontalMargin * 2)).clamp(200.0, double.infinity);
@@ -2864,8 +2875,9 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                   if (screenWidth < 600) {
                     // 모바일 (소형 화면)
                     if (isPortrait) {
-                      // 세로 모드: 세로가 더 긴 A4 (width × 1.414 = height) - 폭 축소
-                      containerWidth = availableWidth * 0.85;
+                      // 세로 모드: 세로가 더 긴 A4 (width × 1.414 = height)
+                      // 내보내기 모드에서는 더 큰 컨테이너 사용 (사진 품질 개선)
+                      containerWidth = availableWidth * (isForExport && isMobileWeb ? 0.98 : isForExport ? 0.95 : 0.85);
                       final minHeight = containerWidth * 1.2;
                       final maxHeight = availableHeight * 0.95;
                       final idealHeight = containerWidth * a4Ratio;
@@ -2879,8 +2891,8 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                     } else {
                       // 가로 모드: 가로가 더 긴 A4 - 크기 최대화
                       // 가용 공간에 맞춰 안전하게 계산
-                      final maxPossibleHeight = availableHeight * 0.96; // 0.92 -> 0.96로 증가 
-                      final maxPossibleWidth = availableWidth * 0.90; // 0.88 -> 0.90로 증가
+                      final maxPossibleHeight = availableHeight * (isForExport && isMobileWeb ? 0.99 : isForExport ? 0.98 : 0.96);
+                      final maxPossibleWidth = availableWidth * (isForExport && isMobileWeb ? 0.98 : isForExport ? 0.95 : 0.90);
                       final idealWidth = maxPossibleHeight * a4Ratio;
                       
                       if (idealWidth <= maxPossibleWidth) {
@@ -3059,7 +3071,11 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                             horizontal: horizontalMargin,
                             vertical: verticalMargin,
                           ),
-                          padding: EdgeInsets.all((horizontalMargin * 0.6).clamp(6.0, 12.0)), // 패딩 축소
+                          padding: EdgeInsets.all((isForExport && isMobileWeb) 
+                            ? (horizontalMargin * 0.1).clamp(1.0, 4.0) // 모바일웹 내보내기 시 패딩 최소화
+                            : isForExport 
+                              ? (horizontalMargin * 0.3).clamp(3.0, 8.0) // 일반 내보내기 시 패딩 축소
+                              : (horizontalMargin * 0.6).clamp(6.0, 12.0)), // 일반 패딩
                           decoration: const BoxDecoration(
                             color: Colors.white,
                           ),
@@ -4075,7 +4091,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
               child: coverWidget, // 완전한 머티리얼 컨텍스트 제공
             ),
           ),
-          pixelRatio: 3.0, // A4 고해상도 캡처
+          pixelRatio: 5.0, // A4 고해상도 캡처 (모바일웹 호환)
         );
         
         // coverBytes is always non-null after successful capture
@@ -4148,7 +4164,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           imageBytes = await _screenshotController.capture(
             delay: Duration(milliseconds: isMobileWeb ? 1000 : 500), // delay 증가
             pixelRatio: kIsWeb 
-              ? (isMobileWeb ? 2.0 : 4.0) // 모바일 웹: 2.0, 데스크톱 웹: 4.0
+              ? (isMobileWeb ? 4.0 : 4.0) // 모바일 웹도 고해상도: 4.0, 데스크톱 웹: 4.0
               : 5.0, // 모바일 앱: 5.0
           );
           
@@ -4295,7 +4311,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         // 겉표지를 이미지로 캡처
         final coverBytes = await ScreenshotController().captureFromWidget(
           coverWidget,
-          pixelRatio: 5.0, // 초고해상도 캡처 (기존 4.0 → 5.0)
+          pixelRatio: 6.0, // 초고해상도 캡처 (모바일웹 호환 강화)
         );
         
         // coverBytes is always non-null after successful capture
@@ -4388,7 +4404,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           
           final Uint8List? imageBytes = await _screenshotController.capture(
             pixelRatio: kIsWeb 
-              ? (isMobileWeb ? 3.0 : 6.0) // 모바일 웹: 3.0, 데스크톱 웹: 6.0
+              ? (isMobileWeb ? 6.0 : 6.0) // 모바일 웹도 고해상도: 6.0, 데스크톱 웹: 6.0
               : 6.0, // 모바일 앱: 6.0
             delay: Duration(milliseconds: isMobileWeb ? 200 : 50),
           );

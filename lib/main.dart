@@ -5267,7 +5267,7 @@ class CoverPageWidget extends StatelessWidget {
           ),
           SizedBox(height: isMobileWeb ? smallSpacing * 0.1 : smallSpacing * 0.5),
           _buildSupplierInfoResponsive(isMobileWeb),
-          SizedBox(height: isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.6),
+          SizedBox(height: isA4Export ? sectionSpacing * 0.3 : (isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.4)),
           
           // 고객 정보 (패딩 극도로 줄임)
           Container(
@@ -5284,7 +5284,7 @@ class CoverPageWidget extends StatelessWidget {
           ),
           SizedBox(height: isMobileWeb ? smallSpacing * 0.1 : smallSpacing * 0.5),
           _buildCustomerInfoResponsive(isMobileWeb),
-          SizedBox(height: isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.6),
+          SizedBox(height: isA4Export ? sectionSpacing * 0.3 : (isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.4)),
           
           // 날짜와 프로젝트 (간격 극도로 줄임)
           Row(
@@ -5294,7 +5294,7 @@ class CoverPageWidget extends StatelessWidget {
               _buildDateProjectField('PROJECT', '', 'projectName'),
             ],
           ),
-          SizedBox(height: isMobileWeb ? sectionSpacing * 0.05 : sectionSpacing * 0.6),
+          SizedBox(height: isA4Export ? sectionSpacing * 0.3 : (isMobileWeb ? sectionSpacing * 0.05 : sectionSpacing * 0.4)),
           
           // 견적 제출 문구 (폰트 크기 더 줄이고 간격 극소화)
           Center(
@@ -5306,15 +5306,15 @@ class CoverPageWidget extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: isMobileWeb ? sectionSpacing * 0.05 : sectionSpacing * 0.6),
+          SizedBox(height: isA4Export ? sectionSpacing * 0.3 : (isMobileWeb ? sectionSpacing * 0.05 : sectionSpacing * 0.4)),
           
           // 견적 테이블 (여기에 더 많은 공간 할당)
           _buildEstimateTable(isA4Export, isMobileWeb),
-          SizedBox(height: isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.8),
+          SizedBox(height: isA4Export ? sectionSpacing * 0.4 : (isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.6)),
           
           // 총 금액
           _buildTotalAmount(isA4Export, isMobileWeb),
-          SizedBox(height: isMobileWeb ? smallSpacing * 0.1 : smallSpacing),
+          SizedBox(height: isA4Export ? smallSpacing * 0.5 : (isMobileWeb ? smallSpacing * 0.1 : smallSpacing * 0.8)),
           
           // 기존 경고 문구
           Center(
@@ -5327,11 +5327,11 @@ class CoverPageWidget extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.3),
+          SizedBox(height: isA4Export ? sectionSpacing * 0.2 : (isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.25)),
           
           // 추가 안내 문구 (한글/영문)
           Container(
-            padding: EdgeInsets.all(isMobileWeb ? 2 : 6),
+            padding: EdgeInsets.all(isA4Export ? 12 : (isMobileWeb ? 3 : 6)),
             decoration: BoxDecoration(
               color: Colors.grey[50],
               border: Border.all(color: Colors.grey[300]!, width: 0.5),

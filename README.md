@@ -140,7 +140,27 @@ firebase deploy
 - **반응형**: 데스크톱/태블릿/모바일 최적화
 - **PWA**: 프로그레시브 웹 앱 지원
 
-## 🆕 최신 업데이트 (v1.2.27)
+## 🆕 최신 업데이트 (v1.2.28)
+
+### 📱 모바일 앱 견적서 화면 오버플로우 완전 해결 (v1.2.28)
+- **상단 헤더 높이 40% 축소**: screenHeight * 0.05 → 0.03으로 ESTIMATE 영역 대폭 축소
+- **로고 및 제목 크기 최적화**: 로고 25% 축소, 제목 폰트 20% 축소로 공간 효율성 극대화
+- **전체 간격 극단적 압축**: 섹션 간격 50% 축소, 작은 간격 50% 축소로 수직 공간 확보
+- **모바일 앱 전용 최적화**: isMobileSize 로직 적용으로 모바일 앱도 모바일 웹 수준 압축
+- **정보 섹션 간격 최소화**: 공급자/고객 정보 간 vertical spacing을 0.05로 극소화
+- **구분선 및 패딩 조정**: 구분선 높이 0.5px, 중요 안내문구 패딩 2px로 최소화
+- **완벽한 화면 적합**: 모든 견적서 내용이 오버플로우 없이 한 화면에 완전 표시
+
+### 🎯 기술적 최적화 세부사항 (v1.2.28)
+```dart
+// 모바일 앱 크기 최적화
+final isMobileSize = isMobileWeb || !kIsWeb; // 모바일 앱도 압축 적용
+final headerHeight = isA4Export ? 60.0 : (isMobileSize ? (screenHeight * 0.03).clamp(20.0, 30.0) : 50.0);
+final sectionSpacing = isA4Export ? 12.0 : (isMobileSize ? (screenHeight * 0.004).clamp(2.0, 4.0) : 8.0);
+final smallSpacing = isA4Export ? 6.0 : (isMobileSize ? (screenHeight * 0.002).clamp(1.0, 2.0) : 4.0);
+```
+
+## 📋 이전 업데이트 (v1.2.27)
 
 ### 🔧 모바일 웹 사진 내보내기 확대/축소 상태 보존 완전 해결 (v1.2.27)
 - **captureFromWidget 방식 적용**: 기존 UI 수정 없이 별도 내보내기 전용 위젯 생성

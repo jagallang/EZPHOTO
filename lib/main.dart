@@ -3553,6 +3553,180 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     );
   }
 
+  // 모바일 웹 export용 위젯 생성
+  Widget _buildMobileWebExportWidget(PageData pageData) {
+    return Material(
+      color: Colors.white,
+      child: Container(
+        width: 595, // A4 width in points
+        height: 842, // A4 height in points
+        color: Colors.white,
+        padding: const EdgeInsets.all(30),
+        child: Column(
+          children: [
+            // 페이지 타이틀
+            Text(
+              pageData.title,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 20),
+            // 사진 레이아웃
+            Expanded(
+              child: _buildExportPhotoLayout(pageData),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  // Export용 사진 레이아웃 생성
+  Widget _buildExportPhotoLayout(PageData pageData) {
+    switch (pageData.layoutCount) {
+      case 1:
+        return _buildExportPhotoSlot(pageData, 0);
+      case 2:
+        return Column(
+          children: [
+            Expanded(child: _buildExportPhotoSlot(pageData, 0)),
+            const SizedBox(height: 15),
+            Expanded(child: _buildExportPhotoSlot(pageData, 1)),
+          ],
+        );
+      case 3:
+        return Column(
+          children: [
+            Expanded(
+              flex: 3,
+              child: _buildExportPhotoSlot(pageData, 0),
+            ),
+            const SizedBox(height: 15),
+            Expanded(
+              flex: 2,
+              child: Row(
+                children: [
+                  Expanded(child: _buildExportPhotoSlot(pageData, 1)),
+                  const SizedBox(width: 15),
+                  Expanded(child: _buildExportPhotoSlot(pageData, 2)),
+                ],
+              ),
+            ),
+          ],
+        );
+      case 4:
+      default:
+        return Column(
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(child: _buildExportPhotoSlot(pageData, 0)),
+                  const SizedBox(width: 15),
+                  Expanded(child: _buildExportPhotoSlot(pageData, 1)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 15),
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(child: _buildExportPhotoSlot(pageData, 2)),
+                  const SizedBox(width: 15),
+                  Expanded(child: _buildExportPhotoSlot(pageData, 3)),
+                ],
+              ),
+            ),
+          ],
+        );
+    }
+  }
+  
+  // Export용 개별 사진 슬롯 생성
+  Widget _buildExportPhotoSlot(PageData pageData, int index) {
+    final hasPhoto = pageData.photoData.containsKey(index) && 
+                    pageData.photoData[index] != null && 
+                    !pageData.photoData[index]!.startsWith('local_gradient_');
+    
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black, width: 2),
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.grey[50],
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (hasPhoto)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Transform.translate(
+                offset: pageData.photoOffsets[index] ?? Offset.zero,
+                child: Transform.scale(
+                  scale: _getScaleFromZoomLevel(pageData.photoZoomLevels[index] ?? 0),
+                  child: Transform.rotate(
+                    angle: (pageData.photoRotations[index] ?? 0) * 3.14159 / 180,
+                    child: SmartImage(
+                      imageSource: pageData.photoData[index]!,
+                      fit: BoxFit.contain,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
+                  ),
+                ),
+              ),
+            )
+          else
+            const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.camera_alt, size: 60, color: Colors.grey),
+                  SizedBox(height: 8),
+                  Text(
+                    '사진추가',
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+          if (hasPhoto && pageData.photoTitles[index] != null && pageData.photoTitles[index]!.isNotEmpty)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.95),
+                  border: const Border(
+                    top: BorderSide(color: Colors.black, width: 1),
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(6),
+                    bottomRight: Radius.circular(6),
+                  ),
+                ),
+                child: Text(
+                  pageData.photoTitles[index]!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.black,
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPhotoSlot(int index) {
     // local_gradient_로 시작하는 것은 빈 슬롯으로 처리
     final hasPhoto = photoData.containsKey(index) && 
@@ -4158,15 +4332,31 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           
           Uint8List? imageBytes;
           
-          // 기존 Screenshot 위젯 사용 (원래 로직 복원)
-          debugPrint('🔍 일반 레이아웃 - Screenshot 위젯 사용');
-          
-          imageBytes = await _screenshotController.capture(
-            delay: Duration(milliseconds: isMobileWeb ? 1000 : 500), // delay 증가
-            pixelRatio: kIsWeb 
-              ? (isMobileWeb ? 4.0 : 4.0) // 모바일 웹도 고해상도: 4.0, 데스크톱 웹: 4.0
-              : 5.0, // 모바일 앱: 5.0
-          );
+          // 모바일 웹에서는 captureFromWidget 사용
+          if (isMobileWeb && pageIndex == currentPageIndex) {
+            debugPrint('🔍 모바일 웹 - captureFromWidget 사용');
+            
+            // 현재 페이지 데이터 저장
+            _saveCurrentPageData();
+            final pageData = pages[pageIndex];
+            
+            // 큰 위젯 생성 후 캡처
+            final widget = _buildMobileWebExportWidget(pageData);
+            imageBytes = await _screenshotController.captureFromWidget(
+              widget,
+              pixelRatio: 3.0, // 고해상도
+              context: context,
+              targetSize: const Size(595, 842), // A4 크기
+            );
+          } else {
+            // 데스크톱 웹이나 다른 페이지는 기존 방식
+            debugPrint('🔍 일반 레이아웃 - Screenshot 위젯 사용');
+            
+            imageBytes = await _screenshotController.capture(
+              delay: Duration(milliseconds: isMobileWeb ? 1000 : 500),
+              pixelRatio: kIsWeb ? 4.0 : 5.0,
+            );
+          }
           
           debugPrint('🔍 Screenshot 결과: ${imageBytes != null ? "${imageBytes.length} bytes" : "null"}');
           

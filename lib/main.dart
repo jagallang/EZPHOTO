@@ -5260,7 +5260,7 @@ class CoverPageWidget extends StatelessWidget {
             child: Text(
               'Supplier Information',
               style: TextStyle(
-                fontSize: isA4Export ? 14 : (isMobileWeb ? 8 : 11),
+                fontSize: isA4Export ? (isMobileWeb ? 10 : 14) : (isMobileWeb ? 6 : 11),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -5277,7 +5277,7 @@ class CoverPageWidget extends StatelessWidget {
             child: Text(
               'Customer Information',
               style: TextStyle(
-                fontSize: isA4Export ? 14 : (isMobileWeb ? 8 : 11),
+                fontSize: isA4Export ? (isMobileWeb ? 10 : 14) : (isMobileWeb ? 6 : 11),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -5320,7 +5320,7 @@ class CoverPageWidget extends StatelessWidget {
                 Text(
                   'IMPORTANT NOTICE / 중요 안내사항',
                   style: TextStyle(
-                    fontSize: isA4Export ? 12 : (isMobileWeb ? 6 : 7),
+                    fontSize: isA4Export ? (isMobileWeb ? 8 : 12) : (isMobileWeb ? 6 : 7),
                     fontWeight: FontWeight.bold,
                     color: Colors.red[700],
                   ),
@@ -5329,7 +5329,7 @@ class CoverPageWidget extends StatelessWidget {
                 Text(
                   '• Material costs may vary depending on suppliers or market conditions.\n자재 비용은 공급업체나 시장 상황에 따라 달라질 수 있습니다.',
                   style: TextStyle(
-                    fontSize: isA4Export ? 10 : (isMobileWeb ? 5 : 6),
+                    fontSize: isA4Export ? (isMobileWeb ? 7 : 10) : (isMobileWeb ? 5 : 6),
                     color: Colors.grey[700],
                     height: 1.2,
                   ),
@@ -5338,7 +5338,7 @@ class CoverPageWidget extends StatelessWidget {
                 Text(
                   '• The price includes all materials and equipment usage fees required for the project. (No additional costs will be charged.)\n프로젝트에 필요한 모든 자재와 장비 사용 비용이 포함된 가격이며, 별도의 추가 비용은 청구되지 않습니다.',
                   style: TextStyle(
-                    fontSize: isA4Export ? 10 : (isMobileWeb ? 5 : 6),
+                    fontSize: isA4Export ? (isMobileWeb ? 7 : 10) : (isMobileWeb ? 5 : 6),
                     color: Colors.grey[700],
                     height: 1.2,
                   ),
@@ -5347,7 +5347,7 @@ class CoverPageWidget extends StatelessWidget {
                 Text(
                   '• If additional work or repairs are required during the project, extra material costs and labor charges will be added with customer consent.\n프로젝트 진행 중 추가 작업이나 수리가 필요한 경우, 고객의 동의하에 자재비 및 인건비가 추가로 청구됩니다.',
                   style: TextStyle(
-                    fontSize: isA4Export ? 10 : (isMobileWeb ? 5 : 6),
+                    fontSize: isA4Export ? (isMobileWeb ? 7 : 10) : (isMobileWeb ? 5 : 6),
                     color: Colors.grey[700],
                     height: 1.2,
                   ),
@@ -5643,7 +5643,7 @@ class CoverPageWidget extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: isA4Export ? 12 : (isMobileWeb ? 8 : 8), // A4 수출시 폰트 크기 증가
+          fontSize: isA4Export ? (isMobileWeb ? 8 : 12) : (isMobileWeb ? 6 : 8), // A4 수출 모바일웹 조건 적용
           fontWeight: FontWeight.w600,
         ),
         textAlign: TextAlign.center,
@@ -5663,7 +5663,7 @@ class CoverPageWidget extends StatelessWidget {
         child: Text(
           actualValue.isEmpty ? '' : actualValue,
           style: TextStyle(
-            fontSize: isA4Export ? 12 : (isMobileWeb ? 8 : 8), // A4 수출시 폰트 크기 증가
+            fontSize: isA4Export ? (isMobileWeb ? 8 : 12) : (isMobileWeb ? 6 : 8), // A4 수출 모바일웹 조건 적용
             color: actualValue.isEmpty ? Colors.grey[400] : Colors.black,
           ),
           textAlign: TextAlign.center,
@@ -5684,7 +5684,7 @@ class CoverPageWidget extends StatelessWidget {
           Text(
             'Total Amount',
             style: TextStyle(
-              fontSize: isA4Export ? 16 : (isMobileWeb ? 11 : 11), // A4 수출시 Total Amount 폰트 크기 증가
+              fontSize: isA4Export ? (isMobileWeb ? 12 : 16) : (isMobileWeb ? 9 : 11), // A4 수출 모바일웹 조건 적용
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -5705,7 +5705,7 @@ class CoverPageWidget extends StatelessWidget {
                 child: Text(
                   coverData.totalAmount ?? '',
                   style: TextStyle(
-                    fontSize: isA4Export ? 18 : (isMobileWeb ? 12 : 12), // A4 수출시 금액 폰트 크기 증가
+                    fontSize: isA4Export ? (isMobileWeb ? 14 : 18) : (isMobileWeb ? 10 : 12), // A4 수출 모바일웹 조건 적용
                     fontWeight: FontWeight.bold,
                     color: (coverData.totalAmount?.isEmpty ?? true) ? Colors.grey[400] : Colors.black,
                   ),
@@ -5718,7 +5718,7 @@ class CoverPageWidget extends StatelessWidget {
           Text(
             'USD (Tax excluded)',
             style: TextStyle(
-              fontSize: isA4Export ? 12 : (isMobileWeb ? 8 : 8), // A4 수출시 폰트 크기 증가
+              fontSize: isA4Export ? (isMobileWeb ? 8 : 12) : (isMobileWeb ? 6 : 8), // A4 수출 모바일웹 조건 적용
               color: Colors.grey[600],
             ),
           ),

@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../domain/entities/photo.dart';
@@ -6,6 +5,8 @@ import '../../domain/entities/layout_config.dart';
 import '../../domain/entities/cover_page.dart';
 import '../../domain/usecases/photo_usecases.dart';
 import '../../domain/usecases/layout_usecases.dart';
+import '../../core/utils/logger.dart';
+import '../../core/errors/exceptions.dart';
 
 /// BLoC for managing photo editor state
 class PhotoEditorBloc extends ChangeNotifier {
@@ -28,7 +29,7 @@ class PhotoEditorBloc extends ChangeNotifier {
   });
 
   // State
-  List<Photo> _photos = [];
+  final List<Photo> _photos = [];
   LayoutConfig _layoutConfig = const LayoutConfig();
   CoverPage? _coverPage;
   bool _isLoading = false;
@@ -49,18 +50,30 @@ class PhotoEditorBloc extends ChangeNotifier {
   // Actions
   Future<void> pickPhoto(ImageSource source, {int? replaceIndex}) async {
     _setLoading(true);
+    clearError();
+    
     try {
+      AppLogger.debug('Picking photo from source: $source', 'PhotoEditorBloc');
       final photo = await pickPhotoUseCase(source: source);
       if (photo != null) {
         if (replaceIndex != null && replaceIndex < _photos.length) {
           _photos[replaceIndex] = photo;
+          AppLogger.info('Photo replaced at index $replaceIndex', 'PhotoEditorBloc');
         } else {
           _photos.add(photo);
+          AppLogger.info('Photo added, total: ${_photos.length}', 'PhotoEditorBloc');
         }
         notifyListeners();
+      } else {
+        AppLogger.warning('No photo selected', 'PhotoEditorBloc');
       }
     } catch (e) {
-      _setError(e.toString());
+      AppLogger.error('Failed to pick photo', e, null, 'PhotoEditorBloc');
+      if (e is AppException) {
+        _setError(e.message);
+      } else {
+        _setError('Failed to pick photo. Please try again.');
+      }
     } finally {
       _setLoading(false);
     }
@@ -68,12 +81,21 @@ class PhotoEditorBloc extends ChangeNotifier {
 
   Future<void> pickMultiplePhotos() async {
     _setLoading(true);
+    clearError();
+    
     try {
+      AppLogger.debug('Picking multiple photos', 'PhotoEditorBloc');
       final newPhotos = await pickMultiplePhotosUseCase();
       _photos.addAll(newPhotos);
+      AppLogger.info('Added ${newPhotos.length} photos, total: ${_photos.length}', 'PhotoEditorBloc');
       notifyListeners();
     } catch (e) {
-      _setError(e.toString());
+      AppLogger.error('Failed to pick multiple photos', e, null, 'PhotoEditorBloc');
+      if (e is AppException) {
+        _setError(e.message);
+      } else {
+        _setError('Failed to pick photos. Please try again.');
+      }
     } finally {
       _setLoading(false);
     }
@@ -107,15 +129,27 @@ class PhotoEditorBloc extends ChangeNotifier {
   }
 
   Future<bool> saveCurrentLayout() async {
-    if (_photos.isEmpty) return false;
+    if (_photos.isEmpty) {
+      _setError('No photos to save');
+      return false;
+    }
     
     _setLoading(true);
+    clearError();
+    
     try {
+      AppLogger.debug('Saving current layout', 'PhotoEditorBloc');
       // TODO: Implement screenshot capture and save
       // This would require integration with screenshot package
+      AppLogger.info('Layout saved successfully', 'PhotoEditorBloc');
       return true;
     } catch (e) {
-      _setError(e.toString());
+      AppLogger.error('Failed to save layout', e, null, 'PhotoEditorBloc');
+      if (e is AppException) {
+        _setError(e.message);
+      } else {
+        _setError('Failed to save layout. Please try again.');
+      }
       return false;
     } finally {
       _setLoading(false);
@@ -123,24 +157,41 @@ class PhotoEditorBloc extends ChangeNotifier {
   }
 
   Future<bool> saveAsPdf() async {
-    if (_photos.isEmpty) return false;
+    if (_photos.isEmpty) {
+      _setError('No photos to export as PDF');
+      return false;
+    }
     
     _setLoading(true);
+    clearError();
+    
     try {
+      AppLogger.debug('Saving as PDF', 'PhotoEditorBloc');
       final photoBytes = _photos
           .where((photo) => photo.bytes != null)
           .map((photo) => photo.bytes!)
           .toList();
       
-      if (photoBytes.isNotEmpty) {
-        return await savePhotosAsPdfUseCase(
-          photoBytes,
-          'photo_layout_${DateTime.now().millisecondsSinceEpoch}.pdf',
-        );
+      if (photoBytes.isEmpty) {
+        _setError('No valid photo data found');
+        return false;
       }
-      return false;
+      
+      final filename = 'photo_layout_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final success = await savePhotosAsPdfUseCase(photoBytes, filename);
+      
+      if (success) {
+        AppLogger.info('PDF saved successfully: $filename', 'PhotoEditorBloc');
+      }
+      
+      return success;
     } catch (e) {
-      _setError(e.toString());
+      AppLogger.error('Failed to save PDF', e, null, 'PhotoEditorBloc');
+      if (e is AppException) {
+        _setError(e.message);
+      } else {
+        _setError('Failed to save PDF. Please try again.');
+      }
       return false;
     } finally {
       _setLoading(false);

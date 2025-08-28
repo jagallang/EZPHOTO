@@ -3,7 +3,7 @@
   "photo_add": "사진추가",
   "photo_title": "사진제목",
   "page_title": "페이지 제목을 터치하여 편집",
-  "page_number": "페이지",
+  "page_number": "페이지 {number}",
   "layout": "레이아웃",
   "cover_page": "겉표지",
   "save": "저장",
@@ -42,5 +42,18 @@
   "sample_city_night": "도시 야경",
   "sample_ocean_view": "바다 전망",
   "sample_food": "음식 사진",
-  "sample_image": "샘플 이미지"
+  "sample_image": "샘플 이미지",
+  "add_photo": "사진 추가",
+  "layout_settings": "레이아웃 설정",
+  "no_photos_added": "추가된 사진이 없습니다",
+  "tap_add_photo_to_start": "시작하려면 사진 추가를 터치하세요",
+  "save_layout": "레이아웃 저장",
+  "layout_saved_successfully": "레이아웃이 성공적으로 저장되었습니다",
+  "pdf_saved_successfully": "PDF가 성공적으로 저장되었습니다",
+  "clear_all_photos": "모든 사진 삭제",
+  "confirm_clear_all": "모든 사진 삭제 확인",
+  "clear_all_photos_warning": "모든 사진을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+  "clear_all": "모두 삭제",
+  "replace_photo": "사진 교체",
+  "remove_photo": "사진 제거"
 }

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../bloc/photo_editor_bloc.dart';
-import '../../widgets/common/smart_image.dart';
 import '../../widgets/editor/photo_grid.dart';
 import '../../widgets/dialogs/photo_source_dialog.dart';
 import '../../widgets/dialogs/layout_settings_dialog.dart';
@@ -25,6 +23,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
     return Consumer<PhotoEditorBloc>(
       builder: (context, bloc, child) {
         return Scaffold(
+          key: const Key('photo_editor_screen'),
           backgroundColor: AppTheme.grey50,
           body: CustomScrollView(
             slivers: [
@@ -173,7 +172,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
 
   Widget _buildEmptyState(BuildContext context) {
     return Card(
-      child: Container(
+      child: SizedBox(
         height: 300,
         width: double.infinity,
         child: Column(
@@ -243,10 +242,10 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         const SizedBox(height: AppConstants.smallPadding),
         TextButton(
           onPressed: bloc.isLoading ? null : () => _clearAllPhotos(context, bloc),
-          child: Text('clear_all_photos'.tr()),
           style: TextButton.styleFrom(
             foregroundColor: AppTheme.error,
           ),
+          child: Text('clear_all_photos'.tr()),
         ),
       ],
     );

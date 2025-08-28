@@ -5305,7 +5305,7 @@ class CoverPageWidget extends StatelessWidget {
           _buildTotalAmount(),
           SizedBox(height: isMobileWeb ? smallSpacing * 0.1 : smallSpacing),
           
-          // 하단 경고 문구 (폰트 크기 더 줄이고 간격 극소화)
+          // 기존 경고 문구
           Center(
             child: Text(
               '*This estimate is based on the time of writing and may vary depending on additional options',
@@ -5314,6 +5314,57 @@ class CoverPageWidget extends StatelessWidget {
                 color: Colors.grey[600],
                 fontStyle: FontStyle.italic,
               ),
+            ),
+          ),
+          SizedBox(height: isMobileWeb ? sectionSpacing * 0.1 : sectionSpacing * 0.3),
+          
+          // 추가 안내 문구 (한글/영문)
+          Container(
+            padding: EdgeInsets.all(isMobileWeb ? 2 : 6),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              border: Border.all(color: Colors.grey[300]!, width: 0.5),
+              borderRadius: BorderRadius.circular(3),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'IMPORTANT NOTICE / 중요 안내사항',
+                  style: TextStyle(
+                    fontSize: isMobileWeb ? 3 : 7,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red[700],
+                  ),
+                ),
+                SizedBox(height: isMobileWeb ? 1 : 2),
+                Text(
+                  '• Material costs may vary depending on suppliers or market conditions.\n자재 비용은 공급업체나 시장 상황에 따라 달라질 수 있습니다.',
+                  style: TextStyle(
+                    fontSize: isMobileWeb ? 2.5 : 6,
+                    color: Colors.grey[700],
+                    height: 1.2,
+                  ),
+                ),
+                SizedBox(height: isMobileWeb ? 0.5 : 1),
+                Text(
+                  '• The price includes all materials and equipment usage fees required for the project. (No additional costs will be charged.)\n프로젝트에 필요한 모든 자재와 장비 사용 비용이 포함된 가격이며, 별도의 추가 비용은 청구되지 않습니다.',
+                  style: TextStyle(
+                    fontSize: isMobileWeb ? 2.5 : 6,
+                    color: Colors.grey[700],
+                    height: 1.2,
+                  ),
+                ),
+                SizedBox(height: isMobileWeb ? 0.5 : 1),
+                Text(
+                  '• If additional work or repairs are required during the project, extra material costs and labor charges will be added with customer consent.\n프로젝트 진행 중 추가 작업이나 수리가 필요한 경우, 고객의 동의하에 자재비 및 인건비가 추가로 청구됩니다.',
+                  style: TextStyle(
+                    fontSize: isMobileWeb ? 2.5 : 6,
+                    color: Colors.grey[700],
+                    height: 1.2,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

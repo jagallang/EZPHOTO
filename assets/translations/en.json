@@ -3,7 +3,7 @@
   "photo_add": "Add Photo",
   "photo_title": "Photo Title",
   "page_title": "Touch to edit page title",
-  "page_number": "Page",
+  "page_number": "Page {number}",
   "layout": "Layout",
   "cover_page": "Cover Page",
   "save": "Save",
@@ -42,5 +42,18 @@
   "sample_city_night": "City Night",
   "sample_ocean_view": "Ocean View",
   "sample_food": "Food Photo",
-  "sample_image": "Sample Image"
+  "sample_image": "Sample Image",
+  "add_photo": "Add Photo",
+  "layout_settings": "Layout Settings",
+  "no_photos_added": "No photos added",
+  "tap_add_photo_to_start": "Tap 'Add Photo' to start",
+  "save_layout": "Save Layout",
+  "layout_saved_successfully": "Layout saved successfully",
+  "pdf_saved_successfully": "PDF saved successfully",
+  "clear_all_photos": "Clear All Photos",
+  "confirm_clear_all": "Confirm Clear All",
+  "clear_all_photos_warning": "Are you sure you want to clear all photos? This action cannot be undone.",
+  "clear_all": "Clear All",
+  "replace_photo": "Replace Photo",
+  "remove_photo": "Remove Photo"
 }

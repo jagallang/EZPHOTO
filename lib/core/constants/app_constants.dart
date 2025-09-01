@@ -1,7 +1,7 @@
 class AppConstants {
   // App Info
   static const String appName = 'POL_PHOTO';
-  static const String appVersion = '1.2.07';
+  static const String appVersion = '1.2.28';
   
   // Layout Defaults
   static const int defaultColumns = 2;

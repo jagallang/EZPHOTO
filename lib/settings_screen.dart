@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'core/constants/app_constants.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -56,7 +57,7 @@ class SettingsScreen extends StatelessWidget {
                   _buildListTile(
                     icon: Icons.info_outline,
                     title: 'REphoto',
-                    subtitle: '버전 1.2.07',
+                    subtitle: '버전 ${AppConstants.appVersion}',
                     onTap: () => _showAboutDialog(context),
                   ),
                   _buildDivider(),
@@ -273,7 +274,7 @@ class SettingsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('버전: 1.2.07'),
+              Text('버전: ${AppConstants.appVersion}'),
               SizedBox(height: 8),
               Text('사진을 예술로 만드는 폴라로이드 프레임 앱'),
               SizedBox(height: 16),

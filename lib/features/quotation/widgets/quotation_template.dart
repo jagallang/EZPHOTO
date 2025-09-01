@@ -215,7 +215,7 @@ class QuotationTemplate extends StatelessWidget {
       case 'quotation_ko':
         return '견적서';
       case 'invoice_ko':
-        return '인보이스';
+        return '비용 청구서';
       case 'invoice':
         return 'INVOICE';
       default:
@@ -232,7 +232,7 @@ class QuotationTemplate extends StatelessWidget {
       case 'quotation_ko':
         return '견적번호';
       case 'invoice_ko':
-        return '인보이스번호';
+        return '청구서번호';
       case 'invoice':
         return 'Invoice No.';
       default:
@@ -437,12 +437,79 @@ class QuotationTemplate extends StatelessWidget {
             ),
           ),
           SizedBox(width: isMobileSize ? AppDimensions.spacingXS + 2 : AppDimensions.spacingXS * 2.5), // 간격 축소
-          Text(
-            isKorean ? '원 (세금 별도)' : 'USD (Tax excluded)',
-            style: TextStyle(
-              fontSize: isA4Export ? (isMobileSize ? AppDimensions.fontSizeXS - 2 : AppDimensions.fontSizeSM) : (isMobileSize ? AppDimensions.fontSizeXS - 4 : AppDimensions.fontSizeXS - 2), // A4 수출 모바일웹 조건 적용
-              color: AppColors.textSecondary,
-            ),
+          Column(
+            children: [
+              Text(
+                isKorean ? '원' : 'USD',
+                style: TextStyle(
+                  fontSize: isA4Export ? (isMobileSize ? AppDimensions.fontSizeXS - 2 : AppDimensions.fontSizeSM) : (isMobileSize ? AppDimensions.fontSizeXS - 4 : AppDimensions.fontSizeXS - 2), // A4 수출 모바일웹 조건 적용
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              SizedBox(height: 4),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: isForExport ? null : () => onFieldTap?.call('taxIncluded'),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppColors.grey400, width: 1),
+                            borderRadius: BorderRadius.circular(3),
+                            color: (coverData.taxIncluded == true) ? AppColors.primaryBlue : Colors.transparent,
+                          ),
+                          child: (coverData.taxIncluded == true) 
+                              ? Icon(Icons.check, size: 12, color: Colors.white)
+                              : null,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          isKorean ? '세금포함' : 'Tax included',
+                          style: TextStyle(
+                            fontSize: isA4Export ? (isMobileSize ? AppDimensions.fontSizeXS - 3 : AppDimensions.fontSizeXS - 1) : (isMobileSize ? AppDimensions.fontSizeXS - 5 : AppDimensions.fontSizeXS - 3),
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  GestureDetector(
+                    onTap: isForExport ? null : () => onFieldTap?.call('taxExcluded'),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: AppColors.grey400, width: 1),
+                            borderRadius: BorderRadius.circular(3),
+                            color: (coverData.taxIncluded == false) ? AppColors.primaryBlue : Colors.transparent,
+                          ),
+                          child: (coverData.taxIncluded == false) 
+                              ? Icon(Icons.check, size: 12, color: Colors.white)
+                              : null,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          isKorean ? '세금미포함' : 'Tax excluded',
+                          style: TextStyle(
+                            fontSize: isA4Export ? (isMobileSize ? AppDimensions.fontSizeXS - 3 : AppDimensions.fontSizeXS - 1) : (isMobileSize ? AppDimensions.fontSizeXS - 5 : AppDimensions.fontSizeXS - 3),
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

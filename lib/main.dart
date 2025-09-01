@@ -1478,7 +1478,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 coverPage!.date = DateTime.now().toString().split(' ')[0];
                 coverPage!.customerName = 'Company Name';
                 coverPage!.projectName = 'Project Name';
-                coverPage!.totalAmount = '\$ 10,000,000';
+                coverPage!.totalAmount = '';
                 coverPage!.primaryColor = Colors.green;
                 break;
               case 'quotation_ko':
@@ -1498,7 +1498,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 coverPage!.date = DateTime.now().toString().split(' ')[0];
                 coverPage!.customerName = 'Company Name';
                 coverPage!.projectName = 'Project Name';
-                coverPage!.totalAmount = '\$ 10,000,000';
+                coverPage!.totalAmount = '';
                 coverPage!.primaryColor = Colors.blue;
                 coverPage!.paymentNoticeLines = [
                   '입금은행',
@@ -1507,7 +1507,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 ];
                 break;
               case 'invoice_ko':
-                coverPage!.title = '인보이스';
+                coverPage!.title = '비용 청구서';
                 coverPage!.subtitle = '사진 촬영 서비스';
                 coverPage!.author = '담당자';
                 coverPage!.date = DateTime.now().toString().split(' ')[0];
@@ -1648,6 +1648,18 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           currentValue = coverPage!.paymentNoticeLines![textLineIndex];
         }
         break;
+      case 'taxIncluded':
+        // 세금 포함 선택
+        setState(() {
+          coverPage!.taxIncluded = true;
+        });
+        return;
+      case 'taxExcluded':
+        // 세금 미포함 선택
+        setState(() {
+          coverPage!.taxIncluded = false;
+        });
+        return;
       default:
         // 테이블 셀 데이터 처리
         if (fieldType.startsWith('description_') || fieldType.startsWith('specification_') ||

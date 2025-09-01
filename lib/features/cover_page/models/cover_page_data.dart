@@ -36,6 +36,9 @@ class CoverPageData {
   // 인보이스용 결제 안내사항 (3줄)
   List<String>? paymentNoticeLines;
   
+  // 세금 포함/미포함 선택
+  bool? taxIncluded; // true: 세금포함, false: 세금미포함, null: 선택안함
+  
   CoverPageData({
     this.template = 'none',
     this.title = '',
@@ -64,6 +67,7 @@ class CoverPageData {
     this.totalAmount,
     Map<String, String>? tableData,
     this.paymentNoticeLines,
+    this.taxIncluded,
   }) : textLines = textLines ?? List.filled(10, ''),
        tableData = tableData ?? {};
 }

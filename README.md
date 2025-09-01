@@ -140,7 +140,45 @@ firebase deploy
 - **반응형**: 데스크톱/태블릿/모바일 최적화
 - **PWA**: 프로그레시브 웹 앱 지원
 
-## 🆕 최신 업데이트 (v1.2.30)
+## 🆕 최신 업데이트 (v1.2.31)
+
+### 💰 세금 체크박스 시스템 구현 (v1.2.31)
+- **☑️ 인터랙티브 세금 체크박스**: 정적 텍스트를 클릭 가능한 체크박스로 완전 대체
+- **🔄 세로 배치 레이아웃**: 세금포함/세금미포함 체크박스를 위아래 세로 배치로 직관적 UI 구현
+- **💵 금액 입력 개선**: 기본 금액(₩10,000,000, $10,000,000) 제거하여 사용자 자유 입력 환경 제공
+- **🌐 다국어 지원**: 한국어(세금포함/세금미포함) 및 영어(Tax included/Tax excluded) 동시 지원
+- **🎨 반응형 디자인**: 모바일/데스크톱/A4 출력 모드별 최적화된 체크박스 크기 및 폰트 적용
+- **⚡ 실시간 상태 관리**: taxIncluded 필드와 onFieldTap 핸들러 연동으로 즉시 상태 반영
+
+### 🛠️ 세금 체크박스 기술 세부사항 (v1.2.31)
+```dart
+// CoverPageData 모델에 세금 상태 필드 추가
+bool? taxIncluded; // true: 세금포함, false: 세금미포함, null: 선택안함
+
+// 세로 배치 체크박스 UI 구현
+Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    // 세금포함 체크박스 (상단)
+    GestureDetector(onTap: () => onFieldTap?.call('taxIncluded')),
+    SizedBox(height: 4),
+    // 세금미포함 체크박스 (하단)  
+    GestureDetector(onTap: () => onFieldTap?.call('taxExcluded')),
+  ],
+)
+
+// main.dart 핸들러 구현
+case 'taxIncluded': setState(() { coverPage!.taxIncluded = true; });
+case 'taxExcluded': setState(() { coverPage!.taxIncluded = false; });
+```
+
+### 🎯 사용법 (v1.2.31)
+1. **견적서/인보이스** 템플릿에서 Total Amount 우측의 세금 체크박스 확인
+2. **세금포함** 또는 **세금미포함** 중 하나 선택하여 클릭
+3. **선택된 옵션**이 파란색으로 체크 표시되며 즉시 반영
+4. **Total Amount**는 빈 칸으로 제공되어 원하는 금액 자유 입력 가능
+
+## 📋 이전 업데이트 (v1.2.30)
 
 ### 🧾 인보이스 템플릿 추가 및 최적화 (v1.2.30)
 - **📋 인보이스 템플릿 추가**: 견적서 기반 인보이스(영문/한글) 템플릿 구현

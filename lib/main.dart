@@ -1389,7 +1389,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                       _buildTemplateOption('견적서(영문)', 'quotation', setDialogState),
                       _buildTemplateOption('견적서(한글)', 'quotation_ko', setDialogState),
                       _buildTemplateOption('인보이스(영문)', 'invoice', setDialogState),
-                      _buildTemplateOption('인보이스(한글)', 'invoice_ko', setDialogState),
+                      _buildTemplateOption('비용청구서', 'invoice_ko', setDialogState),
                       _buildTemplateOption('사진+텍스트', 'photo_text', setDialogState),
                       _buildTemplateOption('텍스트전용', 'text_only', setDialogState),
                     ],
@@ -1513,7 +1513,7 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 coverPage!.date = DateTime.now().toString().split(' ')[0];
                 coverPage!.customerName = '고객사명';
                 coverPage!.projectName = '프로젝트명';
-                coverPage!.totalAmount = '₩ 10,000,000';
+                coverPage!.totalAmount = '';
                 coverPage!.primaryColor = Colors.blue;
                 coverPage!.paymentNoticeLines = [
                   '입금은행',

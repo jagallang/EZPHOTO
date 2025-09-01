@@ -306,6 +306,30 @@ class QuotationTemplate extends StatelessWidget {
     }
   }
 
+  List<Widget> _buildAdditionalNotice(bool isA4Export, bool isMobileSize) {
+    final isInvoice = coverData.template.contains('invoice');
+    
+    // 인보이스의 경우 추가 안내사항 제거
+    if (isInvoice) {
+      return [];
+    }
+    
+    // 견적서의 경우 기존 추가 안내사항 유지
+    final fontSize = isA4Export ? (isMobileSize ? AppDimensions.fontSizeXS - 3 : AppDimensions.fontSizeXS) : (isMobileSize ? AppDimensions.fontSizeXS - 5 : AppDimensions.fontSizeXS - 4);
+    
+    return [
+      SizedBox(height: isMobileSize ? 0.5 : 1),
+      Text(
+        '• If additional work or repairs are required during the project, extra material costs and labor charges will be added with customer consent.\n프로젝트 진행 중 추가 작업이나 수리가 필요한 경우, 고객의 동의하에 자재비 및 인건비가 추가로 청구됩니다.',
+        style: TextStyle(
+          fontSize: fontSize,
+          color: AppColors.textSecondary,
+          height: 1.2,
+        ),
+      ),
+    ];
+  }
+
   Widget _buildSectionHeader(String title, bool isA4Export, bool isMobileSize, double smallSpacing) {
     return Container(
       alignment: Alignment.center,
@@ -446,15 +470,7 @@ class QuotationTemplate extends StatelessWidget {
           ),
           SizedBox(height: isMobileSize ? 1 : 2),
           ..._buildNoticeContent(isA4Export, isMobileSize),
-          SizedBox(height: isMobileSize ? 0.5 : 1),
-          Text(
-            '• If additional work or repairs are required during the project, extra material costs and labor charges will be added with customer consent.\n프로젝트 진행 중 추가 작업이나 수리가 필요한 경우, 고객의 동의하에 자재비 및 인건비가 추가로 청구됩니다.',
-            style: TextStyle(
-              fontSize: isA4Export ? (isMobileSize ? AppDimensions.fontSizeXS - 3 : AppDimensions.fontSizeXS) : (isMobileSize ? AppDimensions.fontSizeXS - 5 : AppDimensions.fontSizeXS - 4),
-              color: AppColors.textSecondary,
-              height: 1.2,
-            ),
-          ),
+          ..._buildAdditionalNotice(isA4Export, isMobileSize),
         ],
       ),
     );

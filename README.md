@@ -140,7 +140,42 @@ firebase deploy
 - **반응형**: 데스크톱/태블릿/모바일 최적화
 - **PWA**: 프로그레시브 웹 앱 지원
 
-## 🆕 최신 업데이트 (v1.2.28)
+## 🆕 최신 업데이트 (v1.2.30)
+
+### 🧾 인보이스 템플릿 추가 및 최적화 (v1.2.30)
+- **📋 인보이스 템플릿 추가**: 견적서 기반 인보이스(영문/한글) 템플릿 구현
+- **💳 편집 가능한 결제 안내사항**: 3줄 터치 편집 기능으로 은행 정보, 계좌번호 등 입력 가능
+- **🎨 동적 제목 시스템**: 견적서 "중요 안내사항" vs 인보이스 "결제 안내사항" 자동 변경
+- **✨ 깔끔한 레이아웃**: 인보이스에서 불필요한 프로젝트 관련 안내문구 제거
+- **🔧 조건부 렌더링**: 템플릿별 차별화된 UI 컴포넌트 적용
+- **📱 간소화된 기본값**: "입금은행" 기본값으로 직관적인 사용자 경험
+
+### 🛠️ 인보이스 기능 상세 (v1.2.30)
+```dart
+// 인보이스 템플릿 식별
+final isInvoice = coverData.template.contains('invoice');
+
+// 동적 제목 생성
+String _getNoticeTitle() {
+  return isInvoice 
+    ? (isKorean ? '결제 안내사항' : 'PAYMENT NOTICE / 결제 안내사항')
+    : 'IMPORTANT NOTICE / 중요 안내사항';
+}
+
+// 편집 가능한 3줄 결제 안내
+paymentNoticeLines: ['입금은행', '', '']
+
+// 조건부 추가 안내문구 (견적서만)
+if (isInvoice) return []; // 인보이스는 추가 안내 제거
+```
+
+### 🎯 사용법 (v1.2.30)
+1. **겉표지** → **인보이스(영문)** 또는 **인보이스(한글)** 선택
+2. **결제 안내사항** 섹션에서 각 줄 터치하여 편집
+3. 입금은행, 계좌번호, 예금주 등 결제 정보 입력
+4. 고품질 PDF/이미지로 저장 및 공유
+
+## 📋 이전 업데이트 (v1.2.28)
 
 ### 🔧 코드 품질 향상 및 버전 동기화 (v1.2.28)
 - **📦 버전 통합 관리**: 모든 하드코딩된 버전을 `AppConstants.appVersion`으로 중앙화하여 일관성 확보
@@ -150,26 +185,9 @@ firebase deploy
 - **🏗️ 생성자 최적화**: `super.key` 패턴 적용으로 모던 Dart 스타일 적용
 - **✅ 정적 분석 통과**: Flutter analyze에서 모든 경고 및 오류 해결 (11개 → 0개)
 
-### 🛠️ 기술적 개선 세부사항 (v1.2.28)
-```dart
-// 버전 중앙 관리
-static const String appVersion = '1.2.28';
-subtitle: 'REphoto v${AppConstants.appVersion}'
-
-// BuildContext 안전성
-if (!mounted) return;
-final mediaQueryData = MediaQuery.of(context);
-
-// 최신 Color API
-Colors.white.withValues(alpha: 0.5) // 기존: withOpacity(0.5)
-
-// 모던 생성자
-const Widget({super.key}) // 기존: ({Key? key}) : super(key: key)
-```
-
 ## 📋 이전 업데이트 (v1.2.27)
 
-### 📱 모바일 앱 견적서 화면 오버플로우 완전 해결 (이전 v1.2.28)
+### 📱 모바일 앱 견적서 화면 오버플로우 완전 해결 (v1.2.27)
 - **상단 헤더 높이 40% 축소**: screenHeight * 0.05 → 0.03으로 ESTIMATE 영역 대폭 축소
 - **로고 및 제목 크기 최적화**: 로고 25% 축소, 제목 폰트 20% 축소로 공간 효율성 극대화
 - **전체 간격 극단적 압축**: 섹션 간격 50% 축소, 작은 간격 50% 축소로 수직 공간 확보

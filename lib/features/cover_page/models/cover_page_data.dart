@@ -33,6 +33,9 @@ class CoverPageData {
   String? totalAmount;
   Map<String, String> tableData; // 테이블 데이터 저장용
   
+  // 인보이스용 결제 안내사항 (3줄)
+  List<String>? paymentNoticeLines;
+  
   CoverPageData({
     this.template = 'none',
     this.title = '',
@@ -60,6 +63,7 @@ class CoverPageData {
     this.projectName,
     this.totalAmount,
     Map<String, String>? tableData,
+    this.paymentNoticeLines,
   }) : textLines = textLines ?? List.filled(10, ''),
        tableData = tableData ?? {};
 }

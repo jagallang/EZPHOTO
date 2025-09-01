@@ -181,11 +181,11 @@ class QuotationTemplate extends StatelessWidget {
         ),
         // 중앙 타이틀 (폰트 크기 조정)
         Text(
-          coverData.template == 'quotation_ko' ? '견적서' : 'ESTIMATE',
+          _getTemplateTitle(),
           style: TextStyle(
             fontSize: titleFontSize,
             fontWeight: FontWeight.bold,
-            letterSpacing: isMobileSize ? (coverData.template == 'quotation_ko' ? 2 : 1) : (coverData.template == 'quotation_ko' ? 4 : 3),
+            letterSpacing: isMobileSize ? (_isKoreanTemplate() ? 2 : 1) : (_isKoreanTemplate() ? 4 : 3),
           ),
         ),
         // 우측 번호 영역 (크기 줄임)
@@ -198,7 +198,7 @@ class QuotationTemplate extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppDimensions.radiusXS),
             ),
             child: Text(
-              coverData.estNo ?? (coverData.template == 'quotation_ko' ? '견적번호' : 'Est. No.'),
+              coverData.estNo ?? _getEstNoPlaceholder(),
               style: TextStyle(
                 fontSize: isA4Export ? AppDimensions.fontSizeSM : (isMobileSize ? AppDimensions.fontSizeXS - 2 : AppDimensions.fontSizeXS),
                 color: AppColors.textSecondary,
@@ -208,6 +208,102 @@ class QuotationTemplate extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _getTemplateTitle() {
+    switch (coverData.template) {
+      case 'quotation_ko':
+        return '견적서';
+      case 'invoice_ko':
+        return '인보이스';
+      case 'invoice':
+        return 'INVOICE';
+      default:
+        return 'ESTIMATE';
+    }
+  }
+
+  bool _isKoreanTemplate() {
+    return coverData.template == 'quotation_ko' || coverData.template == 'invoice_ko';
+  }
+
+  String _getEstNoPlaceholder() {
+    switch (coverData.template) {
+      case 'quotation_ko':
+        return '견적번호';
+      case 'invoice_ko':
+        return '인보이스번호';
+      case 'invoice':
+        return 'Invoice No.';
+      default:
+        return 'Est. No.';
+    }
+  }
+
+  String _getNoticeTitle() {
+    final isInvoice = coverData.template.contains('invoice');
+    if (isInvoice) {
+      final isKorean = coverData.template.contains('_ko');
+      return isKorean ? '결제 안내사항' : 'PAYMENT NOTICE / 결제 안내사항';
+    } else {
+      return 'IMPORTANT NOTICE / 중요 안내사항';
+    }
+  }
+
+  List<Widget> _buildNoticeContent(bool isA4Export, bool isMobileSize) {
+    final isInvoice = coverData.template.contains('invoice');
+    final fontSize = isA4Export ? (isMobileSize ? AppDimensions.fontSizeXS - 3 : AppDimensions.fontSizeXS) : (isMobileSize ? AppDimensions.fontSizeXS - 5 : AppDimensions.fontSizeXS - 4);
+    
+    if (isInvoice && coverData.paymentNoticeLines != null) {
+      // 인보이스의 경우 편집 가능한 3줄 텍스트
+      return coverData.paymentNoticeLines!.asMap().entries.map((entry) {
+        final index = entry.key;
+        final line = entry.value;
+        return Padding(
+          padding: EdgeInsets.only(bottom: isMobileSize ? 0.5 : 1),
+          child: GestureDetector(
+            onTap: isForExport ? null : () => onFieldTap?.call('paymentNotice', textLineIndex: index),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(4),
+              decoration: isForExport ? null : BoxDecoration(
+                border: Border.all(color: Colors.transparent),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                line.isEmpty ? '• 결제 안내사항을 터치하여 편집' : '• $line',
+                style: TextStyle(
+                  fontSize: fontSize,
+                  color: line.isEmpty ? AppColors.textHint : AppColors.textSecondary,
+                  height: 1.2,
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList();
+    } else {
+      // 견적서의 경우 기존 고정 텍스트
+      return [
+        Text(
+          '• Material costs may vary depending on suppliers or market conditions.\n자재 비용은 공급업체나 시장 상황에 따라 달라질 수 있습니다.',
+          style: TextStyle(
+            fontSize: fontSize,
+            color: AppColors.textSecondary,
+            height: 1.2,
+          ),
+        ),
+        SizedBox(height: isMobileSize ? 0.5 : 1),
+        Text(
+          '• The price includes all materials and equipment usage fees required for the project. (No additional costs will be charged.)\n프로젝트에 필요한 모든 자재와 장비 사용 비용이 포함된 가격이며, 별도의 추가 비용은 청구되지 않습니다.',
+          style: TextStyle(
+            fontSize: fontSize,
+            color: AppColors.textSecondary,
+            height: 1.2,
+          ),
+        ),
+      ];
+    }
   }
 
   Widget _buildSectionHeader(String title, bool isA4Export, bool isMobileSize, double smallSpacing) {
@@ -341,7 +437,7 @@ class QuotationTemplate extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'IMPORTANT NOTICE / 중요 안내사항',
+            _getNoticeTitle(),
             style: TextStyle(
               fontSize: isA4Export ? (isMobileSize ? AppDimensions.fontSizeXS - 2 : AppDimensions.fontSizeSM) : (isMobileSize ? AppDimensions.fontSizeXS - 4 : AppDimensions.fontSizeXS - 1),
               fontWeight: FontWeight.bold,
@@ -349,23 +445,7 @@ class QuotationTemplate extends StatelessWidget {
             ),
           ),
           SizedBox(height: isMobileSize ? 1 : 2),
-          Text(
-            '• Material costs may vary depending on suppliers or market conditions.\n자재 비용은 공급업체나 시장 상황에 따라 달라질 수 있습니다.',
-            style: TextStyle(
-              fontSize: isA4Export ? (isMobileSize ? AppDimensions.fontSizeXS - 3 : AppDimensions.fontSizeXS) : (isMobileSize ? AppDimensions.fontSizeXS - 5 : AppDimensions.fontSizeXS - 4),
-              color: AppColors.textSecondary,
-              height: 1.2,
-            ),
-          ),
-          SizedBox(height: isMobileSize ? 0.5 : 1),
-          Text(
-            '• The price includes all materials and equipment usage fees required for the project. (No additional costs will be charged.)\n프로젝트에 필요한 모든 자재와 장비 사용 비용이 포함된 가격이며, 별도의 추가 비용은 청구되지 않습니다.',
-            style: TextStyle(
-              fontSize: isA4Export ? (isMobileSize ? AppDimensions.fontSizeXS - 3 : AppDimensions.fontSizeXS) : (isMobileSize ? AppDimensions.fontSizeXS - 5 : AppDimensions.fontSizeXS - 4),
-              color: AppColors.textSecondary,
-              height: 1.2,
-            ),
-          ),
+          ..._buildNoticeContent(isA4Export, isMobileSize),
           SizedBox(height: isMobileSize ? 0.5 : 1),
           Text(
             '• If additional work or repairs are required during the project, extra material costs and labor charges will be added with customer consent.\n프로젝트 진행 중 추가 작업이나 수리가 필요한 경우, 고객의 동의하에 자재비 및 인건비가 추가로 청구됩니다.',

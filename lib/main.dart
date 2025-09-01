@@ -1388,6 +1388,8 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                       _buildTemplateOption('레포트', 'document', setDialogState),
                       _buildTemplateOption('견적서(영문)', 'quotation', setDialogState),
                       _buildTemplateOption('견적서(한글)', 'quotation_ko', setDialogState),
+                      _buildTemplateOption('인보이스(영문)', 'invoice', setDialogState),
+                      _buildTemplateOption('인보이스(한글)', 'invoice_ko', setDialogState),
                       _buildTemplateOption('사진+텍스트', 'photo_text', setDialogState),
                       _buildTemplateOption('텍스트전용', 'text_only', setDialogState),
                     ],
@@ -1488,6 +1490,36 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
                 coverPage!.projectName = '프로젝트명';
                 coverPage!.totalAmount = '₩ 10,000,000';
                 coverPage!.primaryColor = Colors.green;
+                break;
+              case 'invoice':
+                coverPage!.title = 'INVOICE';
+                coverPage!.subtitle = 'Photo Service';
+                coverPage!.author = 'Manager';
+                coverPage!.date = DateTime.now().toString().split(' ')[0];
+                coverPage!.customerName = 'Company Name';
+                coverPage!.projectName = 'Project Name';
+                coverPage!.totalAmount = '\$ 10,000,000';
+                coverPage!.primaryColor = Colors.blue;
+                coverPage!.paymentNoticeLines = [
+                  '입금은행',
+                  '',
+                  ''
+                ];
+                break;
+              case 'invoice_ko':
+                coverPage!.title = '인보이스';
+                coverPage!.subtitle = '사진 촬영 서비스';
+                coverPage!.author = '담당자';
+                coverPage!.date = DateTime.now().toString().split(' ')[0];
+                coverPage!.customerName = '고객사명';
+                coverPage!.projectName = '프로젝트명';
+                coverPage!.totalAmount = '₩ 10,000,000';
+                coverPage!.primaryColor = Colors.blue;
+                coverPage!.paymentNoticeLines = [
+                  '입금은행',
+                  '',
+                  ''
+                ];
                 break;
               case 'photo_text':
                 coverPage!.title = '사진 표지';
@@ -1611,6 +1643,11 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
           currentValue = coverPage!.textLines[textLineIndex];
         }
         break;
+      case 'paymentNotice':
+        if (textLineIndex != null && textLineIndex < (coverPage?.paymentNoticeLines?.length ?? 0)) {
+          currentValue = coverPage!.paymentNoticeLines![textLineIndex];
+        }
+        break;
       default:
         // 테이블 셀 데이터 처리
         if (fieldType.startsWith('description_') || fieldType.startsWith('specification_') ||
@@ -1693,6 +1730,19 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
       case 'textLine':
         if (editingTextLineIndex >= 0 && editingTextLineIndex < coverPage!.textLines.length) {
           coverPage!.textLines[editingTextLineIndex] = newValue;
+        }
+        break;
+      case 'paymentNotice':
+        if (editingTextLineIndex >= 0) {
+          // paymentNoticeLines가 null이면 초기화
+          if (coverPage!.paymentNoticeLines == null) {
+            coverPage!.paymentNoticeLines = List.filled(3, '');
+          }
+          // 인덱스가 범위를 벗어나면 리스트 확장
+          while (coverPage!.paymentNoticeLines!.length <= editingTextLineIndex) {
+            coverPage!.paymentNoticeLines!.add('');
+          }
+          coverPage!.paymentNoticeLines![editingTextLineIndex] = newValue;
         }
         break;
       default:
@@ -1806,6 +1856,8 @@ class _PhotoEditorScreenState extends State<PhotoEditorScreen> {
         return 'Est. No.';
       case 'textLine':
         return '텍스트';
+      case 'paymentNotice':
+        return '결제 안내사항';
       default:
         // 테이블 셀 필드명 처리
         if (fieldType.startsWith('description_')) {

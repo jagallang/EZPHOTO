@@ -44,6 +44,13 @@ class CoverPageWidget extends StatelessWidget {
           isForExport: isForExport,
           onFieldTap: onFieldTap,
         );
+      case 'invoice':
+      case 'invoice_ko':
+        return QuotationTemplate(
+          coverData: coverData,
+          isForExport: isForExport,
+          onFieldTap: onFieldTap,
+        );
       case 'photo_text':
         return _buildPhotoTextTemplate();
       case 'text_only':
